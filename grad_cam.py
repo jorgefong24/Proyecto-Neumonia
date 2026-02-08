@@ -11,7 +11,7 @@ Implementado con tf.GradientTape (compatible con TF2 eager execution).
 import cv2
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import layers
+import keras.layers as layers
 
 from preprocess_img import preprocess
 
