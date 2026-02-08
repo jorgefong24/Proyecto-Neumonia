@@ -6,6 +6,11 @@ Interfaz gráfica para la detección de neumonía en imágenes radiográficas.
 Utiliza los módulos read_img, integrator (preprocess, load_model, grad_cam)
 para cargar imagen, predecir y mostrar resultado y mapa de calor Grad-CAM.
 """
+from tkinter import *
+from tkinter import ttk, font, filedialog, Entry
+import tensorflow as tf
+import keras.backend as K
+import pydicom as dicom
 
 import csv
 
