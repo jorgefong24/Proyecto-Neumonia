@@ -73,7 +73,7 @@ Script que recibe el arreglo proveniento de read_img.py, realiza las siguientes 
 
 ## load_model.py
 
-Script que lee el archivo binario del modelo de red neuronal convolucional previamente entrenado llamado 'WilhemNet86.h5'.
+Script que lee el archivo binario del modelo de red neuronal convolucional previamente entrenado. **En este proyecto se utiliza `conv_MLP_84.h5`** (según requisitos). El archivo debe estar en esta carpeta o en la carpeta padre.
 
 ## grad_cam.py
 

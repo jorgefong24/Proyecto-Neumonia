@@ -1,0 +1,32 @@
+# Modelo de red neuronal (requisito del proyecto)
+*.h5
+*.keras
+
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Reportes generados por la app
+Reporte*.jpg
+Reporte*.pdf
+historial.csv
+
+# Sistema
+.DS_Store
+Thumbs.db
