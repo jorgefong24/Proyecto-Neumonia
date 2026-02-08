@@ -1,119 +1,50 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Interfaz gráfica para la detección de neumonía en imágenes radiográficas.
 
+Utiliza los módulos read_img, integrator (preprocess, load_model, grad_cam)
+para cargar imagen, predecir y mostrar resultado y mapa de calor Grad-CAM.
+"""
 from tkinter import *
 from tkinter import ttk, font, filedialog, Entry
 import tensorflow as tf
 import keras.backend as K
 import pydicom as dicom
 
-from tkinter.messagebox import askokcancel, showinfo, WARNING
-import getpass
-from PIL import ImageTk, Image
 import csv
-import pyautogui
+
+from PIL import Image, ImageTk
+from tkinter import END, StringVar, Text, Tk, WARNING
+from tkinter import font
+from tkinter import filedialog, messagebox, ttk
+
 import tkcap
 import img2pdf
-import numpy as np
-import time
-tf.compat.v1.disable_eager_execution()
-tf.compat.v1.experimental.output_all_intermediates(True)
-import cv2
 
+from read_img import read_image
+from integrator import run_pipeline
 
-def grad_cam(array):
-    img = preprocess(array)
-    model = model_fun()
-    preds = model.predict(img)
-    argmax = np.argmax(preds[0])
-    output = model.output[:, argmax]
-    last_conv_layer = model.get_layer("conv10_thisone")
-    grads = K.gradients(output, last_conv_layer.output)[0]
-    pooled_grads = K.mean(grads, axis=(0, 1, 2))
-    iterate = K.function([model.input], [pooled_grads, last_conv_layer.output[0]])
-    pooled_grads_value, conv_layer_output_value = iterate(img)
-    for filters in range(64):
-        conv_layer_output_value[:, :, filters] *= pooled_grads_value[filters]
-    # creating the heatmap
-    heatmap = np.mean(conv_layer_output_value, axis=-1)
-    heatmap = np.maximum(heatmap, 0)  # ReLU
-    heatmap /= np.max(heatmap)  # normalize
-    heatmap = cv2.resize(heatmap, (img.shape[1], img.shape[2]))
-    heatmap = np.uint8(255 * heatmap)
-    heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
-    img2 = cv2.resize(array, (512, 512))
-    hif = 0.8
-    transparency = heatmap * hif
-    transparency = transparency.astype(np.uint8)
-    superimposed_img = cv2.add(transparency, img2)
-    superimposed_img = superimposed_img.astype(np.uint8)
-    return superimposed_img[:, :, ::-1]
-
-
-def predict(array):
-    #   1. call function to pre-process image: it returns image in batch format
-    batch_array_img = preprocess(array)
-    #   2. call function to load model and predict: it returns predicted class and probability
-    model = model_fun()
-    # model_cnn = tf.keras.models.load_model('conv_MLP_84.h5')
-    prediction = np.argmax(model.predict(batch_array_img))
-    proba = np.max(model.predict(batch_array_img)) * 100
-    label = ""
-    if prediction == 0:
-        label = "bacteriana"
-    if prediction == 1:
-        label = "normal"
-    if prediction == 2:
-        label = "viral"
-    #   3. call function to generate Grad-CAM: it returns an image with a superimposed heatmap
-    heatmap = grad_cam(array)
-    return (label, proba, heatmap)
-
-
-def read_dicom_file(path):
-    img = dicom.read_file(path)
-    img_array = img.pixel_array
-    img2show = Image.fromarray(img_array)
-    img2 = img_array.astype(float)
-    img2 = (np.maximum(img2, 0) / img2.max()) * 255.0
-    img2 = np.uint8(img2)
-    img_RGB = cv2.cvtColor(img2, cv2.COLOR_GRAY2RGB)
-    return img_RGB, img2show
-
-
-def read_jpg_file(path):
-    img = cv2.imread(path)
-    img_array = np.asarray(img)
-    img2show = Image.fromarray(img_array)
-    img2 = img_array.astype(float)
-    img2 = (np.maximum(img2, 0) / img2.max()) * 255.0
-    img2 = np.uint8(img2)
-    return img2, img2show
-
-
-def preprocess(array):
-    array = cv2.resize(array, (512, 512))
-    array = cv2.cvtColor(array, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4, 4))
-    array = clahe.apply(array)
-    array = array / 255
-    array = np.expand_dims(array, axis=-1)
-    array = np.expand_dims(array, axis=0)
-    return array
+# Resampling: LANCZOS reemplaza ANTIALIAS (deprecado en Pillow 10+)
+try:
+    RESAMPLE = Image.Resampling.LANCZOS
+except AttributeError:
+    RESAMPLE = Image.LANCZOS
 
 
 class App:
+    """
+    Aplicación Tkinter para cargar imagen, predecir neumonía y mostrar
+    resultado (clase, probabilidad) y heatmap Grad-CAM.
+    """
+
     def __init__(self):
         self.root = Tk()
         self.root.title("Herramienta para la detección rápida de neumonía")
-
-        #   BOLD FONT
         fonti = font.Font(weight="bold")
-
         self.root.geometry("815x560")
         self.root.resizable(0, 0)
 
-        #   LABELS
         self.lab1 = ttk.Label(self.root, text="Imagen Radiográfica", font=fonti)
         self.lab2 = ttk.Label(self.root, text="Imagen con Heatmap", font=fonti)
         self.lab3 = ttk.Label(self.root, text="Resultado:", font=fonti)
@@ -125,23 +56,14 @@ class App:
         )
         self.lab6 = ttk.Label(self.root, text="Probabilidad:", font=fonti)
 
-        #   TWO STRING VARIABLES TO CONTAIN ID AND RESULT
         self.ID = StringVar()
         self.result = StringVar()
-
-        #   TWO INPUT BOXES
         self.text1 = ttk.Entry(self.root, textvariable=self.ID, width=10)
-
-        #   GET ID
-        self.ID_content = self.text1.get()
-
-        #   TWO IMAGE INPUT BOXES
         self.text_img1 = Text(self.root, width=31, height=15)
         self.text_img2 = Text(self.root, width=31, height=15)
         self.text2 = Text(self.root)
         self.text3 = Text(self.root)
 
-        #   BUTTONS
         self.button1 = ttk.Button(
             self.root, text="Predecir", state="disabled", command=self.run_model
         )
@@ -154,7 +76,6 @@ class App:
             self.root, text="Guardar", command=self.save_results_csv
         )
 
-        #   WIDGETS POSITIONS
         self.lab1.place(x=110, y=65)
         self.lab2.place(x=545, y=65)
         self.lab3.place(x=500, y=350)
@@ -172,20 +93,21 @@ class App:
         self.text_img1.place(x=65, y=90)
         self.text_img2.place(x=500, y=90)
 
-        #   FOCUS ON PATIENT ID
         self.text1.focus_set()
-
-        #  se reconoce como un elemento de la clase
         self.array = None
-
-        #   NUMERO DE IDENTIFICACIÓN PARA GENERAR PDF
         self.reportID = 0
+        self.label = ""
+        self.proba = 0.0
+        self.img1 = None
+        self.img2 = None
 
-        #   RUN LOOP
         self.root.mainloop()
 
-    #   METHODS
     def load_img_file(self):
+        """
+        Abre el diálogo para elegir imagen (DICOM/JPG/PNG) y la muestra.
+        Usa read_image para soportar ambos formatos.
+        """
         filepath = filedialog.askopenfilename(
             initialdir="/",
             title="Select image",
@@ -196,57 +118,87 @@ class App:
                 ("png files", "*.png"),
             ),
         )
-        if filepath:
-            self.array, img2show = read_dicom_file(filepath)
-            self.img1 = img2show.resize((250, 250), Image.ANTIALIAS)
-            self.img1 = ImageTk.PhotoImage(self.img1)
-            self.text_img1.image_create(END, image=self.img1)
-            self.button1["state"] = "enabled"
+        if not filepath:
+            return
+        try:
+            self.array, img2show = read_image(filepath)
+        except (FileNotFoundError, ValueError) as e:
+            messagebox.showerror("Error", str(e))
+            return
+        self.img1 = img2show.resize((250, 250), RESAMPLE)
+        self.img1 = ImageTk.PhotoImage(self.img1)
+        self.text_img1.delete("1.0", "end")
+        self.text_img1.image_create(END, image=self.img1)
+        self.button1["state"] = "enabled"
 
     def run_model(self):
-        self.label, self.proba, self.heatmap = predict(self.array)
+        """
+        Ejecuta el pipeline (integrator): predicción + Grad-CAM.
+        Muestra clase, probabilidad y heatmap en la interfaz.
+        """
+        self.label, self.proba, self.heatmap = run_pipeline(self.array)
         self.img2 = Image.fromarray(self.heatmap)
-        self.img2 = self.img2.resize((250, 250), Image.ANTIALIAS)
+        self.img2 = self.img2.resize((250, 250), RESAMPLE)
         self.img2 = ImageTk.PhotoImage(self.img2)
-        print("OK")
+        self.text_img2.delete("1.0", "end")
         self.text_img2.image_create(END, image=self.img2)
+        self.text2.delete("1.0", "end")
         self.text2.insert(END, self.label)
-        self.text3.insert(END, "{:.2f}".format(self.proba) + "%")
+        proba_pct = self.proba * 100.0
+        self.text3.delete("1.0", "end")
+        self.text3.insert(END, f"{proba_pct:.2f}%")
 
     def save_results_csv(self):
-        with open("historial.csv", "a") as csvfile:
+        """Guarda cédula, resultado y probabilidad en historial.csv."""
+        with open("historial.csv", "a", newline="", encoding="utf-8") as csvfile:
             w = csv.writer(csvfile, delimiter="-")
-            w.writerow(
-                [self.text1.get(), self.label, "{:.2f}".format(self.proba) + "%"]
-            )
-            showinfo(title="Guardar", message="Los datos se guardaron con éxito.")
+            w.writerow([
+                self.text1.get(),
+                self.label,
+                f"{self.proba * 100.0:.2f}%",
+            ])
+        messagebox.showinfo(
+            title="Guardar",
+            message="Los datos se guardaron con éxito."
+        )
 
     def create_pdf(self):
+        """Captura la ventana con tkcap y guarda como PDF."""
         cap = tkcap.CAP(self.root)
-        ID = "Reporte" + str(self.reportID) + ".jpg"
-        img = cap.capture(ID)
-        img = Image.open(ID)
+        id_name = "Reporte" + str(self.reportID) + ".jpg"
+        cap.capture(id_name)
+        img = Image.open(id_name)
         img = img.convert("RGB")
-        pdf_path = r"Reporte" + str(self.reportID) + ".pdf"
+        pdf_path = "Reporte" + str(self.reportID) + ".pdf"
         img.save(pdf_path)
         self.reportID += 1
-        showinfo(title="PDF", message="El PDF fue generado con éxito.")
+        messagebox.showinfo(
+            title="PDF",
+            message="El PDF fue generado con éxito."
+        )
 
     def delete(self):
-        answer = askokcancel(
-            title="Confirmación", message="Se borrarán todos los datos.", icon=WARNING
+        """Pide confirmación y borra datos e imágenes mostradas."""
+        answer = messagebox.askokcancel(
+            title="Confirmación",
+            message="Se borrarán todos los datos.",
+            icon=WARNING,
         )
         if answer:
             self.text1.delete(0, "end")
-            self.text2.delete(1.0, "end")
-            self.text3.delete(1.0, "end")
-            self.text_img1.delete(self.img1, "end")
-            self.text_img2.delete(self.img2, "end")
-            showinfo(title="Borrar", message="Los datos se borraron con éxito")
+            self.text2.delete("1.0", "end")
+            self.text3.delete("1.0", "end")
+            self.text_img1.delete("1.0", "end")
+            self.text_img2.delete("1.0", "end")
+            messagebox.showinfo(
+                title="Borrar",
+                message="Los datos se borraron con éxito"
+            )
 
 
 def main():
-    my_app = App()
+    """Punto de entrada: crea y ejecuta la aplicación."""
+    app = App()
     return 0
 
 
