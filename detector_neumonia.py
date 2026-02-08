@@ -3,6 +3,9 @@
 
 from tkinter import *
 from tkinter import ttk, font, filedialog, Entry
+import tensorflow as tf
+import keras.backend as K
+import pydicom as dicom
 
 from tkinter.messagebox import askokcancel, showinfo, WARNING
 import getpass
