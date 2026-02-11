@@ -11,7 +11,7 @@ Implementado con tf.GradientTape (compatible con TF2 eager execution).
 import cv2
 import numpy as np
 import tensorflow as tf
-import keras.layers as layers
+from tensorflow.keras import layers
 
 from preprocess_img import preprocess
 
@@ -98,16 +98,22 @@ def grad_cam(model, array, conv_layer_name=None):
     last_conv = _get_conv_layer(
         model, layer_name=conv_layer_name or CONV_LAYER_NAME
     )
-    conv_model = tf.keras.Model(model.input, last_conv.output)
-    pred_model = tf.keras.Model(model.input, model.output)
+    # Un solo modelo con dos salidas para que el gradiente fluya de preds -> conv_output
+    two_output_model = tf.keras.Model(
+        model.input,
+        [last_conv.output, model.output],
+    )
 
     with tf.GradientTape() as tape:
-        conv_output = conv_model(batch_tensor)
-        tape.watch(conv_output)
-        preds = pred_model(batch_tensor)
+        conv_output, preds = two_output_model(batch_tensor)
         class_channel = preds[:, argmax]
 
     grads = tape.gradient(class_channel, conv_output)
+    if grads is None:
+        raise ValueError(
+            "Grad-CAM: no se pudo calcular gradientes. "
+            "Comprueba que el modelo tenga la capa conv esperada y que esté conectada a la salida."
+        )
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
     conv_output_value = conv_output[0].numpy()
     pooled_grads_value = pooled_grads.numpy()

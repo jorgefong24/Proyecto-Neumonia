@@ -16,21 +16,7 @@ CLAHE_GRID = (4, 4)
 
 
 def preprocess(array):
-    """
-    Preprocesa un arreglo de imagen para entrada al modelo.
 
-    - Redimensiona a 512x512.
-    - Convierte a escala de grises (si viene en color).
-    - Aplica ecualización CLAHE.
-    - Normaliza en [0, 1].
-    - Convierte a formato batch (1, H, W, 1).
-
-    Args:
-        array: numpy array (H, W) o (H, W, C), uint8 o float.
-
-    Returns:
-        numpy array de forma (1, 512, 512, 1), float en [0, 1].
-    """
     array = cv2.resize(array, TARGET_SIZE)
     if len(array.shape) == 3:
         array = cv2.cvtColor(array, cv2.COLOR_BGR2GRAY)

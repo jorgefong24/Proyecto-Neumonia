@@ -15,7 +15,7 @@ import pydicom as dicom
 import csv
 
 from PIL import Image, ImageTk
-from tkinter import END, StringVar, Text, Tk, WARNING
+from tkinter import END, StringVar, Text, Tk
 from tkinter import font
 from tkinter import filedialog, messagebox, ttk
 
@@ -182,7 +182,7 @@ class App:
         answer = messagebox.askokcancel(
             title="Confirmación",
             message="Se borrarán todos los datos.",
-            icon=WARNING,
+            icon=messagebox.WARNING,
         )
         if answer:
             self.text1.delete(0, "end")

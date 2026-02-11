@@ -15,19 +15,7 @@ _MODEL_CACHE = None
 
 
 def load_model(path=None):
-    """
-    Carga el modelo Keras desde archivo .h5 y opcionalmente valida integridad.
-
-    Args:
-        path: Ruta al archivo .h5. Si es None, usa MODEL_FILENAME en cwd.
-
-    Returns:
-        Modelo Keras compilado.
-
-    Raises:
-        FileNotFoundError: Si el archivo del modelo no existe.
-        OSError: Si el archivo está corrupto o no es un modelo válido.
-    """
+    
     global _MODEL_CACHE
     if path is None:
         path = MODEL_FILENAME

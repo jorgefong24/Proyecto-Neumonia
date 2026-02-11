@@ -16,21 +16,7 @@ from PIL import Image
 
 
 def read_dicom_file(path):
-    """
-    Lee un archivo DICOM y lo convierte a arreglo y a imagen para mostrar.
 
-    Args:
-        path: Ruta al archivo .dcm.
-
-    Returns:
-        tuple: (img_rgb, img2show)
-            - img_rgb: numpy array en RGB (uint8) para preprocesamiento.
-            - img2show: PIL.Image para visualización en interfaz.
-
-    Raises:
-        FileNotFoundError: Si path no existe.
-        Exception: Si el archivo no es DICOM válido.
-    """
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
     dcm = pydicom.dcmread(path)
@@ -44,20 +30,7 @@ def read_dicom_file(path):
 
 
 def read_jpg_file(path):
-    """
-    Lee un archivo JPEG/PNG y lo convierte a arreglo e imagen para mostrar.
 
-    Args:
-        path: Ruta al archivo .jpeg, .jpg o .png.
-
-    Returns:
-        tuple: (img_array, img2show)
-            - img_array: numpy array (uint8) para preprocesamiento.
-            - img2show: PIL.Image para visualización en interfaz.
-
-    Raises:
-        FileNotFoundError: Si path no existe.
-    """
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
     img = cv2.imread(path)
@@ -72,15 +45,7 @@ def read_jpg_file(path):
 
 
 def read_image(path):
-    """
-    Lee una imagen desde path (DICOM o JPG/PNG) y devuelve arreglo e imagen.
 
-    Args:
-        path: Ruta al archivo (.dcm, .jpeg, .jpg, .png).
-
-    Returns:
-        tuple: (array_para_preproceso, pil_para_visualizacion)
-    """
     path_lower = path.lower()
     if path_lower.endswith(".dcm"):
         return read_dicom_file(path)
