@@ -68,6 +68,12 @@ def predict_class_and_probability(model, batch_array):
         tuple: (índice_clase, probabilidad_en_0_a_1, etiqueta_str).
     """
     preds = model.predict(batch_array, verbose=0)
+    # Manejar diferentes formas de salida
+    if isinstance(preds, list):
+        preds = preds[-1]  # Tomar la última salida si hay múltiples
+    preds = np.array(preds)
+    if len(preds.shape) == 3:
+        preds = np.squeeze(preds, axis=1)
     argmax = int(np.argmax(preds[0]))
     proba = float(np.max(preds[0]))
     label = LABELS[argmax] if 0 <= argmax < len(LABELS) else f"clase_{argmax}"
@@ -106,6 +112,15 @@ def grad_cam(model, array, conv_layer_name=None):
 
     with tf.GradientTape() as tape:
         conv_output, preds = two_output_model(batch_tensor)
+        # Asegurar que preds sea un tensor con la forma correcta
+        if isinstance(preds, list):
+            preds = preds[-1]  # Tomar la última salida si hay múltiples
+        preds = tf.convert_to_tensor(preds)
+        if len(preds.shape) == 3:
+            preds = tf.squeeze(preds, axis=1)
+        # Verificar que argmax esté dentro del rango
+        if argmax >= preds.shape[1]:
+            raise ValueError(f"Clase predicha {argmax} fuera de rango. Salida del modelo tiene forma {preds.shape}")
         class_channel = preds[:, argmax]
 
     grads = tape.gradient(class_channel, conv_output)
