@@ -11,7 +11,8 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from read_img import read_image, read_jpg_file
+from src.data.read_img import read_image, read_jpg_file
+
 
 
 def test_read_image_nonexistent_path_raises():
