@@ -22,8 +22,8 @@ from tkinter import filedialog, messagebox, ttk
 import tkcap
 import img2pdf
 
-from read_img import read_image
-from integrator import run_pipeline
+from src.data.read_img import read_image
+from src.models.integrator import run_pipeline
 
 # Resampling: LANCZOS reemplaza ANTIALIAS (deprecado en Pillow 10+)
 try:
