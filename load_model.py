@@ -29,7 +29,7 @@ def load_model(path=None):
             raise FileNotFoundError(f"No se encontró el modelo: {path}")
     if _MODEL_CACHE is not None:
         return _MODEL_CACHE
-    model = keras.models.load_model(path)
+    model = keras.models.load_model(path, compile=False)
     _MODEL_CACHE = model
     return model
 
