@@ -9,7 +9,7 @@ para cargar imagen, predecir y mostrar resultado y mapa de calor Grad-CAM.
 from tkinter import *
 from tkinter import ttk, font, filedialog, Entry
 import tensorflow as tf
-from tensorflow.keras import backend as K
+import keras.backend as K
 import pydicom as dicom
 
 import csv
