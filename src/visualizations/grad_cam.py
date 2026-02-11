@@ -15,6 +15,7 @@ from tensorflow.keras import layers
 
 from src.data.preprocess_img import preprocess
 
+
 CONV_LAYER_NAME = "conv10_thisone"
 LABELS = ("bacteriana", "normal", "viral")
 

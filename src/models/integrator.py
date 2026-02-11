@@ -8,8 +8,9 @@ Responsabilidad: unificar salidas y retornar solo clase, probabilidad
 y heatmap para la UI.
 """
 
-from load_model import load_model as load_cnn_model
-from grad_cam import grad_cam as compute_grad_cam
+from src.models.load_model import load_model as load_cnn_model
+from src.visualizations.grad_cam import grad_cam as compute_grad_cam
+
 
 
 def run_pipeline(array, model_path=None):

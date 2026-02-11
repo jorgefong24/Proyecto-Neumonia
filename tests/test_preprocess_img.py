@@ -11,7 +11,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from preprocess_img import preprocess, TARGET_SIZE
+from src.data.preprocess_img import preprocess, TARGET_SIZE
 
 
 def test_preprocess_output_shape():
