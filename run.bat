@@ -1,4 +1,4 @@
-@echo off
+uv@echo off
 REM Ejecutar detector de neumonia - usar despues de haber instalado dependencias
 cd /d "%~dp0"
 
