@@ -16,6 +16,18 @@ from PIL import Image
 
 
 def read_dicom_file(path):
+    """
+    Lee un archivo DICOM y devuelve array RGB y imagen PIL para visualización.
+
+    Args:
+        path: Ruta al archivo .dcm.
+
+    Returns:
+        Tupla (img_rgb, img2show) con array numpy RGB y PIL Image.
+
+    Raises:
+        FileNotFoundError: Si el archivo no existe.
+    """
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
     dcm = pydicom.dcmread(path)
@@ -29,6 +41,19 @@ def read_dicom_file(path):
 
 
 def read_jpg_file(path):
+    """
+    Lee una imagen JPEG/PNG y devuelve array y imagen PIL para visualización.
+
+    Args:
+        path: Ruta al archivo .jpg, .jpeg o .png.
+
+    Returns:
+        Tupla (img_array, img2show) con array numpy y PIL Image.
+
+    Raises:
+        FileNotFoundError: Si el archivo no existe.
+        ValueError: Si la imagen no pudo leerse.
+    """
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
     img = cv2.imread(path)
@@ -43,6 +68,19 @@ def read_jpg_file(path):
 
 
 def read_image(path):
+    """
+    Lee una imagen desde ruta; soporta DICOM (.dcm) y raster (.jpg, .png).
+
+    Args:
+        path: Ruta al archivo de imagen.
+
+    Returns:
+        Tupla (array, img2show): array para el pipeline, PIL Image para UI.
+
+    Raises:
+        FileNotFoundError: Si el archivo no existe.
+        ValueError: Si la imagen no pudo leerse (solo raster).
+    """
     path_lower = path.lower()
     if path_lower.endswith(".dcm"):
         return read_dicom_file(path)

@@ -16,6 +16,15 @@ CLAHE_GRID = (4, 4)
 
 
 def preprocess(array):
+    """
+    Preprocesa la imagen para el modelo: resize 512x512, grises, CLAHE, normaliza.
+
+    Args:
+        array: Array numpy (H, W) o (H, W, 3) en escala 0-255.
+
+    Returns:
+        Tensor (1, 512, 512, 1) float32 en [0, 1].
+    """
     array = cv2.resize(array, TARGET_SIZE)
     if len(array.shape) == 3:
         array = cv2.cvtColor(array, cv2.COLOR_BGR2GRAY)

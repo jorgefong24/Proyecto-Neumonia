@@ -105,7 +105,7 @@ def grad_cam(model, array, conv_layer_name=None):
     last_conv = _get_conv_layer(
         model, layer_name=conv_layer_name or CONV_LAYER_NAME
     )
-    # Un solo modelo con dos salidas para que el gradiente fluya de preds -> conv_output
+    # Modelo con dos salidas para que el gradiente fluya preds -> conv_output.
     two_output_model = tf.keras.Model(
         model.input,
         [last_conv.output, model.output],
@@ -121,14 +121,18 @@ def grad_cam(model, array, conv_layer_name=None):
             preds = tf.squeeze(preds, axis=1)
         # Verificar que argmax esté dentro del rango
         if argmax >= preds.shape[1]:
-            raise ValueError(f"Clase predicha {argmax} fuera de rango. Salida del modelo tiene forma {preds.shape}")
+            raise ValueError(
+                f"Clase predicha {argmax} fuera de rango. "
+                f"Salida del modelo tiene forma {preds.shape}"
+            )
         class_channel = preds[:, argmax]
 
     grads = tape.gradient(class_channel, conv_output)
     if grads is None:
         raise ValueError(
             "Grad-CAM: no se pudo calcular gradientes. "
-            "Comprueba que el modelo tenga la capa conv esperada y que esté conectada a la salida."
+            "Comprueba que el modelo tenga la capa conv esperada y que "
+            "esté conectada a la salida."
         )
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
     conv_output_value = conv_output[0].numpy()

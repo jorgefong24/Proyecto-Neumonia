@@ -4,9 +4,9 @@
 CLI para ejecutar inferencia (sin GUI) en contenedor.
 
 Ejemplos:
-  python cli.py --image path\to\image.dcm
-  python cli.py --image path\to\image.png --out out_dir
-  python cli.py --image path\to\image.png --model conv_MLP_84.h5
+  python cli.py --image path/to/image.dcm
+  python cli.py --image path/to/image.png --out out_dir
+  python cli.py --image path/to/image.png --model conv_MLP_84.h5
 """
 
 import argparse
@@ -17,17 +17,30 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from integrator import run_pipeline
-from read_img import read_image
+from src.data.read_img import read_image
+from src.models.integrator import run_pipeline
 
 
 def _save_heatmap_rgb(out_path: Path, heatmap_rgb: np.ndarray) -> None:
+    """
+    Guarda el array RGB del heatmap como imagen en out_path.
+
+    Args:
+        out_path: Ruta del archivo de salida (ej. .png).
+        heatmap_rgb: Array numpy (H, W, 3) uint8.
+    """
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img = Image.fromarray(heatmap_rgb.astype(np.uint8), mode="RGB")
     img.save(out_path)
 
 
 def main() -> int:
+    """
+    Punto de entrada CLI: ejecuta inferencia y escribe heatmap y JSON.
+
+    Returns:
+        0 si todo fue correcto.
+    """
     parser = argparse.ArgumentParser(
         description="Inferencia neumonía + Grad-CAM (modo CLI)."
     )
