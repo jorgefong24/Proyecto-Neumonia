@@ -27,8 +27,9 @@ def read_dicom_file(path):
         
 
     Returns:
-        tuple: (img_rgb, img2show) donde img_rgb es un array RGB para el modelo
-        y img2show es una imagen PIL para visualización.
+        tuple: (img_rgb, img2show) donde img_rgb es un array RGB 
+        para el modelo y img2show es una imagen PIL para
+        visualización.
     """
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
