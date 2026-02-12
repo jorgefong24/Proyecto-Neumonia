@@ -63,7 +63,8 @@ def load_model(path=None):
             break
 
     if found_path is None:
-        raise FileNotFoundError(f"No se encontró ningún modelo entre: {candidates}")
+        raise FileNotFoundError(f"No se encontró ningún modelo entre: {candidates}"
+                                )
 
     if _MODEL_CACHE is not None:
         return _MODEL_CACHE
