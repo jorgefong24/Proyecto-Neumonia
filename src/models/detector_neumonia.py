@@ -153,6 +153,11 @@ class App:
     # ================= FUNCIONES =================
 
     def load_img_file(self):
+        """
+        Abre diálogo para cargar imagen y la muesttra en la interfaz.
+        
+        Soporta formatos DICOM (.dcm), JPEG, JPG y PNG.
+        """
         filepath = filedialog.askopenfilename(
             initialdir="/",
             title="Select image",
@@ -182,6 +187,11 @@ class App:
         self.button1["state"] = "enabled"
 
     def run_model(self):
+        """
+        Ejecuta el pipeline de predicción y muestra resultados.
+        
+        Genera predicción, probabilidad y heatmap Grad-CAM.
+        """
         self.label, self.proba, self.heatmap = run_pipeline(self.array)
 
         self.img2 = Image.fromarray(self.heatmap)
@@ -198,6 +208,9 @@ class App:
         self.text3.insert(END, f"{self.proba * 100:.2f}%")
 
     def save_results_csv(self):
+        """
+        Guarda Cédula, resultado y probabilidad en historial.csv
+        """
         with open("historial.csv", "a", newline="", encoding="utf-8") as csvfile:
             w = csv.writer(csvfile, delimiter="-")
             w.writerow([
