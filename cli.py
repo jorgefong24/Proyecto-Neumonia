@@ -22,6 +22,13 @@ from src.data.read_img import read_image
 
 
 def _save_heatmap_rgb(out_path: Path, heatmap_rgb: np.ndarray) -> None:
+    """
+    Guarda un heat map RGB en archivo PNG.
+
+    Args:
+        out_path (Path): Ruta donde guarda el heatmap
+        heatmap_rgb (np.ndarray): array RGB del heatmap
+    """
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img = Image.fromarray(heatmap_rgb.astype(np.uint8), mode="RGB")
     img.save(out_path)
@@ -39,7 +46,8 @@ def main() -> int:
     parser.add_argument(
         "--model",
         default=None,
-        help="Ruta al modelo .h5 (opcional). Por defecto busca conv_MLP_84.h5.",
+        help="Ruta al modelo .h5 (opcional). "
+        "Por defecto busca conv_MLP_84.h5.",
     )
     parser.add_argument(
         "--out",
@@ -49,7 +57,8 @@ def main() -> int:
     parser.add_argument(
         "--heatmap-name",
         default="heatmap.png",
-        help="Nombre del archivo de heatmap dentro de --out (default: heatmap.png).",
+        help="Nombre del archivo de heatmap dentro de --out "
+        "(default: heatmap.png).",
     )
     args = parser.parse_args()
 

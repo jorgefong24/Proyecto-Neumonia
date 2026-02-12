@@ -92,7 +92,8 @@ def grad_cam(model, array, conv_layer_name=None):
     Args:
         model: Modelo Keras ya cargado.
         array: Imagen en formato numpy (H, W) o (H, W, C) para superponer.
-        conv_layer_name: Nombre de capa conv opcional (default CONV_LAYER_NAME).
+        conv_layer_name: Nombre de capa conv opcional 
+        (default CONV_LAYER_NAME).
 
     Returns:
         tuple: (clase_str, probabilidad_0_1, heatmap_imagen_rgb).
@@ -102,7 +103,9 @@ def grad_cam(model, array, conv_layer_name=None):
     batch_tensor = tf.convert_to_tensor(batch_img, dtype=tf.float32)
     argmax, proba, label = predict_class_and_probability(model, batch_img)
 
-    last_conv = _get_conv_layer(model, layer_name=conv_layer_name or CONV_LAYER_NAME)
+    last_conv = _get_conv_layer(
+        model, layer_name=conv_layer_name or CONV_LAYER_NAME
+    )
     # Un solo modelo con dos salidas para que el gradiente fluya
     # de preds -> conv_output
     two_output_model = tf.keras.Model(
