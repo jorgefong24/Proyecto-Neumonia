@@ -6,19 +6,24 @@ Interfaz gráfica para la detección de neumonía en imágenes radiográficas.
 Utiliza los módulos read_img, integrator (preprocess, load_model, grad_cam)
 para cargar imagen, predecir y mostrar resultado y mapa de calor Grad-CAM.
 """
-import csv
 from tkinter import *
-from tkinter import END, Entry, StringVar, Text, Tk, filedialog, font, messagebox, ttk
-
-import img2pdf
+from tkinter import ttk, font, filedialog, Entry
+import tensorflow as tf
 import keras.backend as K
 import pydicom as dicom
-import tensorflow as tf
-import tkcap
-from PIL import Image, ImageTk
 
-from integrator import run_pipeline
-from read_img import read_image
+import csv
+
+from PIL import Image, ImageTk
+from tkinter import END, StringVar, Text, Tk
+from tkinter import font
+from tkinter import filedialog, messagebox, ttk
+
+import tkcap
+import img2pdf
+
+from src.data.read_img import read_image
+from src.models.integrator import run_pipeline
 
 # Resampling: LANCZOS reemplaza ANTIALIAS (deprecado en Pillow 10+)
 try:
@@ -147,15 +152,14 @@ class App:
         """Guarda cédula, resultado y probabilidad en historial.csv."""
         with open("historial.csv", "a", newline="", encoding="utf-8") as csvfile:
             w = csv.writer(csvfile, delimiter="-")
-            w.writerow(
-                [
-                    self.text1.get(),
-                    self.label,
-                    f"{self.proba * 100.0:.2f}%",
-                ]
-            )
+            w.writerow([
+                self.text1.get(),
+                self.label,
+                f"{self.proba * 100.0:.2f}%",
+            ])
         messagebox.showinfo(
-            title="Guardar", message="Los datos se guardaron con éxito."
+            title="Guardar",
+            message="Los datos se guardaron con éxito."
         )
 
     def create_pdf(self):
@@ -168,7 +172,10 @@ class App:
         pdf_path = "Reporte" + str(self.reportID) + ".pdf"
         img.save(pdf_path)
         self.reportID += 1
-        messagebox.showinfo(title="PDF", message="El PDF fue generado con éxito.")
+        messagebox.showinfo(
+            title="PDF",
+            message="El PDF fue generado con éxito."
+        )
 
     def delete(self):
         """Pide confirmación y borra datos e imágenes mostradas."""
@@ -184,7 +191,8 @@ class App:
             self.text_img1.delete("1.0", "end")
             self.text_img2.delete("1.0", "end")
             messagebox.showinfo(
-                title="Borrar", message="Los datos se borraron con éxito"
+                title="Borrar",
+                message="Los datos se borraron con éxito"
             )
 
 

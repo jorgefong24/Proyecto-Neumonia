@@ -29,7 +29,8 @@ python -m venv .venv
 pip install -r requirements.txt
 
 # Ejecutar el proyecto
-python detector_neumonia.py
+set TF_CPP_MIN_LOG_LEVEL=2
+uv run python -m src.models.detector_neumonia
 ```
 
 **Sin activar el venv** (usando el Python del venv directamente):
@@ -48,7 +49,7 @@ Desde la carpeta **`UAO-Neumonia`**:
 
 ```bash
 pip install -r requirements.txt
-uv run python detector_neumonia.py
+uv run python -m src.models.detector_neumonia
 ```
 
 O, si todas las dependencias están en `pyproject.toml`:
