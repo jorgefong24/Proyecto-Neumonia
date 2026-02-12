@@ -4,20 +4,22 @@
 Interfaz gráfica para la detección de neumonía en imágenes radiográficas.
 """
 
-from tkinter import *
-from tkinter import ttk, font, filedialog, Entry
-import tensorflow as tf
-import keras.backend as K
-import pydicom as dicom
 import csv
+from tkinter import (
+    END,
+    Frame,
+    Label,
+    StringVar,
+    Text,
+    Tk,
+    filedialog,
+    messagebox,
+    ttk,
+)
 
-from PIL import Image, ImageTk
-from tkinter import END, StringVar, Text, Tk
-from tkinter import font
-from tkinter import filedialog, messagebox, ttk
-
-import tkcap
 import img2pdf
+import tkcap
+from PIL import Image, ImageTk
 
 from src.data.read_img import read_image
 from src.models.integrator import run_pipeline
@@ -188,7 +190,6 @@ class App:
 
         self.text_img2.delete("1.0", "end")
         self.text_img2.image_create(END, image=self.img2)
-    
 
         self.text2.delete("1.0", "end")
         self.text2.insert(END, self.label)
