@@ -16,7 +16,6 @@ from PIL import Image
 
 
 def read_dicom_file(path):
-
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
     dcm = pydicom.dcmread(path)
@@ -30,7 +29,6 @@ def read_dicom_file(path):
 
 
 def read_jpg_file(path):
-
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
     img = cv2.imread(path)
@@ -45,7 +43,6 @@ def read_jpg_file(path):
 
 
 def read_image(path):
-
     path_lower = path.lower()
     if path_lower.endswith(".dcm"):
         return read_dicom_file(path)

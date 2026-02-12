@@ -16,7 +16,6 @@ CLAHE_GRID = (4, 4)
 
 
 def preprocess(array):
-
     array = cv2.resize(array, TARGET_SIZE)
     if len(array.shape) == 3:
         array = cv2.cvtColor(array, cv2.COLOR_BGR2GRAY)

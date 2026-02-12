@@ -44,6 +44,59 @@ Uso de la Interfaz Gráfica:
 
 ---
 
+## Docker (recomendado para ejecución reproducible)
+
+Este proyecto incluye una **GUI con Tkinter** (`detector_neumonia.py`). Ejecutar GUIs dentro de Docker en Windows requiere configuración extra (WSLg/X server). Por eso el contenedor está preparado para correr en **modo CLI** (sin interfaz) mediante `cli.py`.
+
+### Construir imagen
+
+```bash
+docker build -t proyecto-neumonia:latest .
+```
+
+### Ejecutar inferencia (CLI)
+
+- **Requisito**: tener el modelo `conv_MLP_84.h5` en tu máquina (se recomienda montarlo como volumen; no se copia a la imagen).
+
+Ejemplo (PowerShell) montando el directorio actual como `/data`:
+
+```powershell
+docker run --rm `
+  -v ${PWD}:/data `
+  -w /data `
+  proyecto-neumonia:latest `
+  python /app/cli.py --image /data/tu_imagen.dcm --model /data/conv_MLP_84.h5 --out /data/out
+```
+
+Salida: imprime un JSON con `label`, `probability` y la ruta del `heatmap` generado.
+
+### Nota sobre la GUI en Docker
+
+Si quieres correr `detector_neumonia.py` dentro del contenedor, revisa la sección siguiente sobre WSLg.
+
+### Modo GUI con Docker + WSLg (Tkinter)
+
+1. Abre **la consola de tu distro WSL** (Ubuntu, etc.) donde ya funciona WSLg (puedes comprobarlo con `xclock` o cualquier app gráfica).
+2. Desde ahí, construye la imagen:
+
+```bash
+docker build -t proyecto-neumonia:gui .
+```
+
+3. Ejecuta el contenedor reenviando el `DISPLAY` y el socket X11 de WSLg:
+
+```bash
+docker run --rm \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v "$PWD":/app \
+  -w /app \
+  proyecto-neumonia:gui \
+  python detector_neumonia.py
+```
+
+Con esto, la ventana Tkinter debería abrirse en tu escritorio de Windows a través de WSLg.
+
 ## Arquitectura de archivos propuesta.
 
 ## detector_neumonia.py
@@ -103,3 +156,45 @@ Grad-CAM realiza el cálculo del gradiente de la salida correspondiente a la cla
 
 Isabella Torres Revelo - https://github.com/isa-tr
 Nicolas Diaz Salazar - https://github.com/nicolasdiazsalazar
+
+---
+
+**Notas rápidas / Entorno**
+
+- **Versión de Python recomendada:** 3.11 (compatible con `pyproject.toml`: >=3.10,<3.14).
+- El archivo del modelo binario (`*.h5`) está incluido en `.gitignore` por
+  seguridad; coloque su modelo localmente y páselo a la ejecución o monte
+  como volumen en Docker.
+
+**Crear entorno virtual (Windows PowerShell)**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -U pip
+pip install -r requirements.txt
+```
+
+**Ejecutar pruebas unitarias**
+
+```bash
+pytest -q
+```
+
+**Licencia sugerida**
+
+Se puede usar una licencia permisiva como MIT. Ejemplo breve para README:
+
+> Licencia: MIT — consulte LICENSE para más detalles.
+
+Si desea incluir una licencia, agregue un archivo `LICENSE` al repositorio.
+
+**Archivo LICENSE**
+
+Se ha añadido el archivo `LICENSE` con texto de la licencia MIT.
+
+**Docker y variables DISPLAY (GUI)**
+
+Si la GUI en Docker no funciona, puede ser necesario exportar la variable
+de entorno `DISPLAY` al contenedor (ej. cuando se usa WSLg o X11). Revise
+la sección "Modo GUI con Docker + WSLg" más arriba para ejemplos.

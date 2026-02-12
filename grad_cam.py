@@ -50,9 +50,7 @@ def _get_conv_layer(model, layer_name=None):
             pass
     layer = _find_last_conv_layer(model)
     if layer is None:
-        raise ValueError(
-            "No se encontró capa convolucional para Grad-CAM."
-        )
+        raise ValueError("No se encontró capa convolucional para Grad-CAM.")
     return layer
 
 
@@ -101,9 +99,7 @@ def grad_cam(model, array, conv_layer_name=None):
     batch_tensor = tf.convert_to_tensor(batch_img, dtype=tf.float32)
     argmax, proba, label = predict_class_and_probability(model, batch_img)
 
-    last_conv = _get_conv_layer(
-        model, layer_name=conv_layer_name or CONV_LAYER_NAME
-    )
+    last_conv = _get_conv_layer(model, layer_name=conv_layer_name or CONV_LAYER_NAME)
     # Un solo modelo con dos salidas para que el gradiente fluya de preds -> conv_output
     two_output_model = tf.keras.Model(
         model.input,
@@ -120,7 +116,9 @@ def grad_cam(model, array, conv_layer_name=None):
             preds = tf.squeeze(preds, axis=1)
         # Verificar que argmax esté dentro del rango
         if argmax >= preds.shape[1]:
-            raise ValueError(f"Clase predicha {argmax} fuera de rango. Salida del modelo tiene forma {preds.shape}")
+            raise ValueError(
+                f"Clase predicha {argmax} fuera de rango. Salida del modelo tiene forma {preds.shape}"
+            )
         class_channel = preds[:, argmax]
 
     grads = tape.gradient(class_channel, conv_output)
@@ -138,11 +136,8 @@ def grad_cam(model, array, conv_layer_name=None):
 
     heatmap = np.mean(conv_output_value, axis=-1)
     heatmap = np.maximum(heatmap, 0)
-    heatmap /= (np.max(heatmap) + 1e-8)
-    heatmap = cv2.resize(
-        heatmap,
-        (batch_img.shape[2], batch_img.shape[1])
-    )
+    heatmap /= np.max(heatmap) + 1e-8
+    heatmap = cv2.resize(heatmap, (batch_img.shape[2], batch_img.shape[1]))
     heatmap = np.uint8(255 * heatmap)
     heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
 

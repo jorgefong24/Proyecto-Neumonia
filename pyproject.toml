@@ -18,5 +18,9 @@ dependencies = [
     "pytest>=7.0.0",
 ]
 
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools]
 py-modules = ["detector_neumonia", "grad_cam", "integrator", "load_model", "preprocess_img", "read_img"]

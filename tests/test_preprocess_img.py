@@ -4,14 +4,15 @@
 Pruebas unitarias para el módulo preprocess_img.
 """
 
+import os
+import sys
+
 import numpy as np
 import pytest
 
-import sys
-import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from preprocess_img import preprocess, TARGET_SIZE
+from preprocess_img import TARGET_SIZE, preprocess
 
 
 def test_preprocess_output_shape():

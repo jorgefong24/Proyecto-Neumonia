@@ -1,0 +1,24 @@
+.git
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.idea
+.vscode
+dist
+build
+*.egg-info
+*.log
+
+# Modelos/pesos (mejor montarlos como volumen)
+*.h5
+
+# Outputs locales
+out
+historial.csv
+Reporte*.jpg
+Reporte*.pdf
