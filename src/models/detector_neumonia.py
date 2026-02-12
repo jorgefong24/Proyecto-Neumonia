@@ -10,6 +10,7 @@ import tensorflow as tf
 import keras.backend as K
 import pydicom as dicom
 import csv
+import os
 
 from PIL import Image, ImageTk
 from tkinter import END, StringVar, Text, Tk
@@ -211,34 +212,44 @@ class App:
         )
 
     def create_pdf(self):
-        """Captura la ventana con tkcap y guarda como PDF con nombre personalizado."""
+        """Captura la ventana y guarda JPG y PDF en carpetas separadas."""
+
+        import os
+        from datetime import datetime
 
         cedula = self.text1.get().strip()
 
         if not cedula:
             messagebox.showerror(
-            title="Error",
-            message="Debe ingresar la cédula del paciente antes de generar el PDF."
-        )
+                title="Error",
+                message="Debe ingresar la cédula del paciente antes de generar el PDF."
+            )
             return
 
-        nombre_base = f"Resultado paciente CC. {cedula}"
+        # Crear carpetas si no existen
+        os.makedirs("reports/jpg", exist_ok=True)
+        os.makedirs("reports/PDF", exist_ok=True)
+
+        # Timestamp para evitar archivos repetidos
+        timestamp = datetime.now().strftime("D_%Y-%m-%d_T_%H-%M-%S")
+
+        nombre_base = f"Resultado paciente CC. {cedula}_{timestamp}"
+
+        jpg_path = os.path.join("reports/jpg", f"{nombre_base}.jpg")
+        pdf_path = os.path.join("reports/PDF", f"{nombre_base}.pdf")
 
         # Captura imagen
         cap = tkcap.CAP(self.root)
-        jpg_name = f"{nombre_base}.jpg"
-        cap.capture(jpg_name)
+        cap.capture(jpg_path)
 
-        # Convertir a PDF
-        img = Image.open(jpg_name)
+        # Abrir el archivo CORRECTO (misma ruta)
+        img = Image.open(jpg_path)
         img = img.convert("RGB")
-
-        pdf_name = f"{nombre_base}.pdf"
-        img.save(pdf_name)
+        img.save(pdf_path)
 
         messagebox.showinfo(
-        title="PDF",
-        message=f"El PDF fue generado con éxito:\n{pdf_name}"
+            title="PDF",
+            message=f"El PDF fue generado con éxito:\n{pdf_path}"
         )
         
         def save_results_csv(self):
