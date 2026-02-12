@@ -16,14 +16,16 @@ CLAHE_GRID = (4, 4)
 
 
 def preprocess(array):
-    """
-    Preprocesa la imagen para el modelo: resize 512x512, grises, CLAHE, normaliza.
+    """Procesa una imagen para el modelo de clasificación de neumonía
+    
+    Realiza resize a 512x512, convierte a escala de grises, aplica CLAHE,
+    normaliza a rango 0-1 y convierte a tensor con batch.
 
     Args:
-        array: Array numpy (H, W) o (H, W, 3) en escala 0-255.
+        array: Imagen en formato numpy array (H, W) o (H, W, C)
 
     Returns:
-        Tensor (1, 512, 512, 1) float32 en [0, 1].
+        np.ndarray: Imagen preprocesada con forma (1, 512, 512, 1) y tipo float32
     """
     array = cv2.resize(array, TARGET_SIZE)
     if len(array.shape) == 3:
