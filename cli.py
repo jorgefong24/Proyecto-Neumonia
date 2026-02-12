@@ -17,8 +17,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from integrator import run_pipeline
-from read_img import read_image
+from src.models.integrator import run_pipeline
+from src.data.read_img import read_image
 
 
 def _save_heatmap_rgb(out_path: Path, heatmap_rgb: np.ndarray) -> None:

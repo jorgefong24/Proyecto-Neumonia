@@ -16,6 +16,20 @@ from PIL import Image
 
 
 def read_dicom_file(path):
+    """
+    Lee un archivo DICOM y retorna el array y la imagen para mostrar.
+
+    Args:
+        path (str): Ruta al archivo DICOM 
+
+    Raises:
+        FileNotFoundError: Si el archivo no existe
+        
+
+    Returns:
+        tuple: (img_rgb, img2show) donde img_rgb es un array RGB para el modelo
+        y img2show es una imagen PIL para visualización.
+    """
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
     dcm = pydicom.dcmread(path)
@@ -29,6 +43,20 @@ def read_dicom_file(path):
 
 
 def read_jpg_file(path):
+    """
+    Lee un archivo de imagen JPG/PNG y retorna el array y la imagen.
+
+    Args:
+        path (str): Ruta al archivo de imagen JPG/PNG 
+
+    Raises:
+        FileNotFoundError: Si el archivo no existe
+        ValueError: Si el archivo no se pudo leer como imagen
+
+    Returns:
+        tuple: (img2, img2show) donde img2 es un numpy array
+        e img2show es una imagen PIL para visualización.
+    """
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
     img = cv2.imread(path)
@@ -43,6 +71,18 @@ def read_jpg_file(path):
 
 
 def read_image(path):
+    """
+    Lee una imagen desde archivo, detectando automáticamente el formato.
+    
+    Soporta archivos DICOM (.dcm) y formate raster (.jpg, .jpeg, .png).
+
+    Args:
+        path (str): Ruta al archivo de imagen (DICOM o JPG/PNG)
+
+    Returns:
+        tuple: (array, img2show) donde array es un numpy array
+        e img2show es una imagen PIL para visualización.
+    """
     path_lower = path.lower()
     if path_lower.endswith(".dcm"):
         return read_dicom_file(path)

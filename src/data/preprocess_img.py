@@ -16,6 +16,17 @@ CLAHE_GRID = (4, 4)
 
 
 def preprocess(array):
+    """Procesa una imagen para el modelo de clasificación de neumonía
+    
+    Realiza resize a 512x512, convierte a escala de grises, aplica CLAHE,
+    normaliza a rango 0-1 y convierte a tensor con batch.
+
+    Args:
+        array: Imagen en formato numpy array (H, W) o (H, W, C)
+
+    Returns:
+        np.ndarray: Imagen preprocesada con forma (1, 512, 512, 1) y tipo float32
+    """
     array = cv2.resize(array, TARGET_SIZE)
     if len(array.shape) == 3:
         array = cv2.cvtColor(array, cv2.COLOR_BGR2GRAY)

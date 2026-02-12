@@ -4,21 +4,22 @@
 Interfaz gráfica para la detección de neumonía en imágenes radiográficas.
 """
 
-from tkinter import *
-from tkinter import ttk, font, filedialog, Entry
-import tensorflow as tf
-import keras.backend as K
-import pydicom as dicom
 import csv
-import os
+from tkinter import (
+    END,
+    Frame,
+    Label,
+    StringVar,
+    Text,
+    Tk,
+    filedialog,
+    messagebox,
+    ttk,
+)
 
-from PIL import Image, ImageTk
-from tkinter import END, StringVar, Text, Tk
-from tkinter import font
-from tkinter import filedialog, messagebox, ttk
-
-import tkcap
 import img2pdf
+import tkcap
+from PIL import Image, ImageTk
 
 from src.data.read_img import read_image
 from src.models.integrator import run_pipeline
@@ -152,6 +153,11 @@ class App:
     # ================= FUNCIONES =================
 
     def load_img_file(self):
+        """
+        Abre diálogo para cargar imagen y la muesttra en la interfaz.
+        
+        Soporta formatos DICOM (.dcm), JPEG, JPG y PNG.
+        """
         filepath = filedialog.askopenfilename(
             initialdir="/",
             title="Select image",
@@ -181,6 +187,11 @@ class App:
         self.button1["state"] = "enabled"
 
     def run_model(self):
+        """
+        Ejecuta el pipeline de predicción y muestra resultados.
+        
+        Genera predicción, probabilidad y heatmap Grad-CAM.
+        """
         self.label, self.proba, self.heatmap = run_pipeline(self.array)
 
         self.img2 = Image.fromarray(self.heatmap)
@@ -189,7 +200,6 @@ class App:
 
         self.text_img2.delete("1.0", "end")
         self.text_img2.image_create(END, image=self.img2)
-    
 
         self.text2.delete("1.0", "end")
         self.text2.insert(END, self.label)
@@ -198,6 +208,9 @@ class App:
         self.text3.insert(END, f"{self.proba * 100:.2f}%")
 
     def save_results_csv(self):
+        """
+        Guarda Cédula, resultado y probabilidad en historial.csv
+        """
         with open("historial.csv", "a", newline="", encoding="utf-8") as csvfile:
             w = csv.writer(csvfile, delimiter="-")
             w.writerow([
@@ -212,44 +225,34 @@ class App:
         )
 
     def create_pdf(self):
-        """Captura la ventana y guarda JPG y PDF en carpetas separadas."""
-
-        import os
-        from datetime import datetime
+        """Captura la ventana con tkcap y guarda como PDF con nombre personalizado."""
 
         cedula = self.text1.get().strip()
 
         if not cedula:
             messagebox.showerror(
-                title="Error",
-                message="Debe ingresar la cédula del paciente antes de generar el PDF."
-            )
+            title="Error",
+            message="Debe ingresar la cédula del paciente antes de generar el PDF."
+        )
             return
 
-        # Crear carpetas si no existen
-        os.makedirs("reports/jpg", exist_ok=True)
-        os.makedirs("reports/PDF", exist_ok=True)
-
-        # Timestamp para evitar archivos repetidos
-        timestamp = datetime.now().strftime("D_%Y-%m-%d_T_%H-%M-%S")
-
-        nombre_base = f"Resultado paciente CC. {cedula}_{timestamp}"
-
-        jpg_path = os.path.join("reports/jpg", f"{nombre_base}.jpg")
-        pdf_path = os.path.join("reports/PDF", f"{nombre_base}.pdf")
+        nombre_base = f"Resultado paciente CC. {cedula}"
 
         # Captura imagen
         cap = tkcap.CAP(self.root)
-        cap.capture(jpg_path)
+        jpg_name = f"{nombre_base}.jpg"
+        cap.capture(jpg_name)
 
-        # Abrir el archivo CORRECTO (misma ruta)
-        img = Image.open(jpg_path)
+        # Convertir a PDF
+        img = Image.open(jpg_name)
         img = img.convert("RGB")
-        img.save(pdf_path)
+
+        pdf_name = f"{nombre_base}.pdf"
+        img.save(pdf_name)
 
         messagebox.showinfo(
-            title="PDF",
-            message=f"El PDF fue generado con éxito:\n{pdf_path}"
+        title="PDF",
+        message=f"El PDF fue generado con éxito:\n{pdf_name}"
         )
         
         def save_results_csv(self):
