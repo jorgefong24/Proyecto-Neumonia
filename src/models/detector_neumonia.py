@@ -41,16 +41,10 @@ class App:
     def __init__(self):
         self.root = Tk()
         self.root.title("Herramienta para la detección rápida de neumonía")
-
         fonti = font.Font(weight="bold")
+        self.root.geometry("815x560")
+        self.root.resizable(0, 0)
 
-        # 🔹 Ventana más grande
-        self.root.geometry("1100x700")
-
-        # 🔹 Ahora sí se puede redimensionar
-        self.root.resizable(True, True)
-
-        # ---------------- LABELS ----------------
         self.lab1 = ttk.Label(self.root, text="Imagen Radiográfica", font=fonti)
         self.lab2 = ttk.Label(self.root, text="Imagen con Heatmap", font=fonti)
         self.lab3 = ttk.Label(self.root, text="Resultado:", font=fonti)
@@ -62,16 +56,13 @@ class App:
         )
         self.lab6 = ttk.Label(self.root, text="Probabilidad:", font=fonti)
 
-        # ---------------- VARIABLES ----------------
         self.ID = StringVar()
         self.result = StringVar()
-
-        # ---------------- WIDGETS ----------------
-        self.text1 = ttk.Entry(self.root, textvariable=self.ID, width=15)
-        self.text_img1 = Text(self.root, width=40, height=18)
-        self.text_img2 = Text(self.root, width=40, height=18)
-        self.text2 = Text(self.root, width=12, height=2)
-        self.text3 = Text(self.root, width=12, height=2)
+        self.text1 = ttk.Entry(self.root, textvariable=self.ID, width=10)
+        self.text_img1 = Text(self.root, width=31, height=15)
+        self.text_img2 = Text(self.root, width=31, height=15)
+        self.text2 = Text(self.root)
+        self.text3 = Text(self.root)
 
         self.button1 = ttk.Button(
             self.root, text="Predecir", state="disabled", command=self.run_model
@@ -85,28 +76,23 @@ class App:
             self.root, text="Guardar", command=self.save_results_csv
         )
 
-        # ---------------- POSICIONES ----------------
-        self.lab1.place(x=200, y=80)
-        self.lab2.place(x=700, y=80)
-        self.lab3.place(x=700, y=470)
-        self.lab4.place(x=150, y=470)
-        self.lab5.place(x=250, y=30)
-        self.lab6.place(x=700, y=520)
+        self.lab1.place(x=110, y=65)
+        self.lab2.place(x=545, y=65)
+        self.lab3.place(x=500, y=350)
+        self.lab4.place(x=65, y=350)
+        self.lab5.place(x=122, y=25)
+        self.lab6.place(x=500, y=400)
+        self.button1.place(x=220, y=460)
+        self.button2.place(x=70, y=460)
+        self.button3.place(x=670, y=460)
+        self.button4.place(x=520, y=460)
+        self.button6.place(x=370, y=460)
+        self.text1.place(x=200, y=350)
+        self.text2.place(x=610, y=350, width=90, height=30)
+        self.text3.place(x=610, y=400, width=90, height=30)
+        self.text_img1.place(x=65, y=90)
+        self.text_img2.place(x=500, y=90)
 
-        self.button1.place(x=350, y=600)
-        self.button2.place(x=150, y=600)
-        self.button3.place(x=900, y=600)
-        self.button4.place(x=750, y=600)
-        self.button6.place(x=550, y=600)
-
-        self.text1.place(x=300, y=470)
-        self.text2.place(x=830, y=470)
-        self.text3.place(x=830, y=520)
-
-        self.text_img1.place(x=100, y=120)
-        self.text_img2.place(x=650, y=120)
-
-        # ---------------- ESTADO INICIAL ----------------
         self.text1.focus_set()
         self.array = None
         self.reportID = 0
@@ -117,6 +103,33 @@ class App:
 
         self.root.mainloop()
 
+    def load_img_file(self):
+        """
+        Abre el diálogo para elegir imagen (DICOM/JPG/PNG) y la muestra.
+        Usa read_image para soportar ambos formatos.
+        """
+        filepath = filedialog.askopenfilename(
+            initialdir="/",
+            title="Select image",
+            filetypes=(
+                ("DICOM", "*.dcm"),
+                ("JPEG", "*.jpeg"),
+                ("jpg files", "*.jpg"),
+                ("png files", "*.png"),
+            ),
+        )
+        if not filepath:
+            return
+        try:
+            self.array, img2show = read_image(filepath)
+        except (FileNotFoundError, ValueError) as e:
+            messagebox.showerror("Error", str(e))
+            return
+        self.img1 = img2show.resize((250, 250), RESAMPLE)
+        self.img1 = ImageTk.PhotoImage(self.img1)
+        self.text_img1.delete("1.0", "end")
+        self.text_img1.image_create(END, image=self.img1)
+        self.button1["state"] = "enabled"
 
     def run_model(self):
         """
