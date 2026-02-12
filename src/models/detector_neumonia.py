@@ -2,16 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 Interfaz gráfica para la detección de neumonía en imágenes radiográficas.
-
-Utiliza los módulos read_img, integrator (preprocess, load_model, grad_cam)
-para cargar imagen, predecir y mostrar resultado y mapa de calor Grad-CAM.
 """
+
 from tkinter import *
 from tkinter import ttk, font, filedialog, Entry
 import tensorflow as tf
 import keras.backend as K
 import pydicom as dicom
-
 import csv
 
 from PIL import Image, ImageTk
@@ -25,7 +22,7 @@ import img2pdf
 from src.data.read_img import read_image
 from src.models.integrator import run_pipeline
 
-# Resampling: LANCZOS reemplaza ANTIALIAS (deprecado en Pillow 10+)
+# Resampling compatible con Pillow 10+
 try:
     RESAMPLE = Image.Resampling.LANCZOS
 except AttributeError:
@@ -41,59 +38,107 @@ class App:
     def __init__(self):
         self.root = Tk()
         self.root.title("Herramienta para la detección rápida de neumonía")
-        fonti = font.Font(weight="bold")
-        self.root.geometry("815x560")
-        self.root.resizable(0, 0)
+        self.root.geometry("1400x850")
+        self.root.minsize(1200, 700)
+        self.root.resizable(True, True)
 
-        self.lab1 = ttk.Label(self.root, text="Imagen Radiográfica", font=fonti)
-        self.lab2 = ttk.Label(self.root, text="Imagen con Heatmap", font=fonti)
-        self.lab3 = ttk.Label(self.root, text="Resultado:", font=fonti)
-        self.lab4 = ttk.Label(self.root, text="Cédula Paciente:", font=fonti)
-        self.lab5 = ttk.Label(
+        font_title = ("Arial", 18, "bold")
+        font_sub = ("Arial", 12, "bold")
+
+        # ================= CONFIG GRID =================
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_columnconfigure(1, weight=1)
+        self.root.grid_rowconfigure(0, weight=0)
+        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_rowconfigure(2, weight=0)
+        self.root.grid_rowconfigure(3, weight=0)
+
+        # ================= TITULO =================
+        titulo = Label(
             self.root,
             text="SOFTWARE PARA EL APOYO AL DIAGNÓSTICO MÉDICO DE NEUMONÍA",
-            font=fonti,
+            font=font_title
         )
-        self.lab6 = ttk.Label(self.root, text="Probabilidad:", font=fonti)
+        titulo.grid(row=0, column=0, columnspan=2, pady=20)
+
+        # ================= FRAME IMÁGENES =================
+        frame_imgs = Frame(self.root)
+        frame_imgs.grid(row=1, column=0, columnspan=2, sticky="nsew")
+
+        frame_imgs.grid_columnconfigure(0, weight=1)
+        frame_imgs.grid_columnconfigure(1, weight=1)
+
+        Label(frame_imgs, text="Imagen Radiográfica", font=font_sub)\
+            .grid(row=0, column=0, pady=10)
+
+        Label(frame_imgs, text="Imagen con Heatmap", font=font_sub)\
+            .grid(row=0, column=1, pady=10)
+
+        self.text_img1 = Text(frame_imgs, width=45, height=22)
+        self.text_img1.grid(row=1, column=0, padx=40, pady=10)
+
+        self.text_img2 = Text(frame_imgs, width=45, height=22)
+        self.text_img2.grid(row=1, column=1, padx=40, pady=10)
+
+        # ================= FRAME RESULTADOS =================
+        frame_result = Frame(self.root)
+        frame_result.grid(row=2, column=0, columnspan=2, pady=20)
+
+        Label(frame_result, text="Cédula Paciente:", font=font_sub)\
+            .grid(row=0, column=0, padx=10)
 
         self.ID = StringVar()
-        self.result = StringVar()
-        self.text1 = ttk.Entry(self.root, textvariable=self.ID, width=10)
-        self.text_img1 = Text(self.root, width=31, height=15)
-        self.text_img2 = Text(self.root, width=31, height=15)
-        self.text2 = Text(self.root)
-        self.text3 = Text(self.root)
+        self.text1 = ttk.Entry(frame_result, textvariable=self.ID, width=20)
+        self.text1.grid(row=0, column=1, padx=10)
+
+        Label(frame_result, text="Resultado:", font=font_sub)\
+            .grid(row=0, column=2, padx=10)
+
+        self.text2 = Text(frame_result, width=15, height=1)
+        self.text2.grid(row=0, column=3, padx=10)
+
+        Label(frame_result, text="Probabilidad:", font=font_sub)\
+            .grid(row=0, column=4, padx=10)
+
+        self.text3 = Text(frame_result, width=15, height=1)
+        self.text3.grid(row=0, column=5, padx=10)
+
+        # ================= FRAME BOTONES =================
+        frame_buttons = Frame(self.root)
+        frame_buttons.grid(row=3, column=0, columnspan=2, pady=20)
+
+        self.button2 = ttk.Button(
+            frame_buttons, text="Cargar Imagen",
+            command=self.load_img_file
+        )
+        self.button2.grid(row=0, column=0, padx=15)
 
         self.button1 = ttk.Button(
-            self.root, text="Predecir", state="disabled", command=self.run_model
+            frame_buttons, text="Predecir",
+            state="disabled",
+            command=self.run_model
         )
-        self.button2 = ttk.Button(
-            self.root, text="Cargar Imagen", command=self.load_img_file
-        )
-        self.button3 = ttk.Button(self.root, text="Borrar", command=self.delete)
-        self.button4 = ttk.Button(self.root, text="PDF", command=self.create_pdf)
+        self.button1.grid(row=0, column=1, padx=15)
+
         self.button6 = ttk.Button(
-            self.root, text="Guardar", command=self.save_results_csv
+            frame_buttons, text="Guardar",
+            command=self.save_results_csv
         )
+        self.button6.grid(row=0, column=2, padx=15)
 
-        self.lab1.place(x=110, y=65)
-        self.lab2.place(x=545, y=65)
-        self.lab3.place(x=500, y=350)
-        self.lab4.place(x=65, y=350)
-        self.lab5.place(x=122, y=25)
-        self.lab6.place(x=500, y=400)
-        self.button1.place(x=220, y=460)
-        self.button2.place(x=70, y=460)
-        self.button3.place(x=670, y=460)
-        self.button4.place(x=520, y=460)
-        self.button6.place(x=370, y=460)
-        self.text1.place(x=200, y=350)
-        self.text2.place(x=610, y=350, width=90, height=30)
-        self.text3.place(x=610, y=400, width=90, height=30)
-        self.text_img1.place(x=65, y=90)
-        self.text_img2.place(x=500, y=90)
+        self.button4 = ttk.Button(
+            frame_buttons, text="PDF",
+            command=self.create_pdf
+        )
+        self.button4.grid(row=0, column=3, padx=15)
 
-        self.text1.focus_set()
+        self.button3 = ttk.Button(
+            frame_buttons, text="Borrar",
+            command=self.delete
+        )
+        self.button3.grid(row=0, column=4, padx=15)
+
+        # ================= VARIABLES =================
         self.array = None
         self.reportID = 0
         self.label = ""
@@ -103,11 +148,9 @@ class App:
 
         self.root.mainloop()
 
+    # ================= FUNCIONES =================
+
     def load_img_file(self):
-        """
-        Abre el diálogo para elegir imagen (DICOM/JPG/PNG) y la muestra.
-        Usa read_image para soportar ambos formatos.
-        """
         filepath = filedialog.askopenfilename(
             initialdir="/",
             title="Select image",
@@ -118,86 +161,132 @@ class App:
                 ("png files", "*.png"),
             ),
         )
+
         if not filepath:
             return
+
         try:
             self.array, img2show = read_image(filepath)
         except (FileNotFoundError, ValueError) as e:
             messagebox.showerror("Error", str(e))
             return
-        self.img1 = img2show.resize((250, 250), RESAMPLE)
+
+        self.img1 = img2show.resize((450, 450), RESAMPLE)
         self.img1 = ImageTk.PhotoImage(self.img1)
+
         self.text_img1.delete("1.0", "end")
         self.text_img1.image_create(END, image=self.img1)
+
         self.button1["state"] = "enabled"
 
     def run_model(self):
-        """
-        Ejecuta el pipeline (integrator): predicción + Grad-CAM.
-        Muestra clase, probabilidad y heatmap en la interfaz.
-        """
         self.label, self.proba, self.heatmap = run_pipeline(self.array)
+
         self.img2 = Image.fromarray(self.heatmap)
-        self.img2 = self.img2.resize((250, 250), RESAMPLE)
+        self.img2 = self.img2.resize((450, 450), RESAMPLE)
         self.img2 = ImageTk.PhotoImage(self.img2)
+
         self.text_img2.delete("1.0", "end")
         self.text_img2.image_create(END, image=self.img2)
+    
+
         self.text2.delete("1.0", "end")
         self.text2.insert(END, self.label)
-        proba_pct = self.proba * 100.0
+
         self.text3.delete("1.0", "end")
-        self.text3.insert(END, f"{proba_pct:.2f}%")
+        self.text3.insert(END, f"{self.proba * 100:.2f}%")
 
     def save_results_csv(self):
-        """Guarda cédula, resultado y probabilidad en historial.csv."""
         with open("historial.csv", "a", newline="", encoding="utf-8") as csvfile:
             w = csv.writer(csvfile, delimiter="-")
             w.writerow([
                 self.text1.get(),
                 self.label,
-                f"{self.proba * 100.0:.2f}%",
+                f"{self.proba * 100:.2f}%"
             ])
+
         messagebox.showinfo(
             title="Guardar",
             message="Los datos se guardaron con éxito."
         )
 
     def create_pdf(self):
-        """Captura la ventana con tkcap y guarda como PDF."""
-        cap = tkcap.CAP(self.root)
-        id_name = "Reporte" + str(self.reportID) + ".jpg"
-        cap.capture(id_name)
-        img = Image.open(id_name)
-        img = img.convert("RGB")
-        pdf_path = "Reporte" + str(self.reportID) + ".pdf"
-        img.save(pdf_path)
-        self.reportID += 1
-        messagebox.showinfo(
-            title="PDF",
-            message="El PDF fue generado con éxito."
+        """Captura la ventana con tkcap y guarda como PDF con nombre personalizado."""
+
+        cedula = self.text1.get().strip()
+
+        if not cedula:
+            messagebox.showerror(
+            title="Error",
+            message="Debe ingresar la cédula del paciente antes de generar el PDF."
         )
+            return
+
+        nombre_base = f"Resultado paciente CC. {cedula}"
+
+        # Captura imagen
+        cap = tkcap.CAP(self.root)
+        jpg_name = f"{nombre_base}.jpg"
+        cap.capture(jpg_name)
+
+        # Convertir a PDF
+        img = Image.open(jpg_name)
+        img = img.convert("RGB")
+
+        pdf_name = f"{nombre_base}.pdf"
+        img.save(pdf_name)
+
+        messagebox.showinfo(
+        title="PDF",
+        message=f"El PDF fue generado con éxito:\n{pdf_name}"
+        )
+        
+        def save_results_csv(self):
+         """Guarda cédula, resultado y probabilidad en historial.csv."""
+
+        cedula = self.text1.get().strip()
+
+        if not cedula:
+            messagebox.showerror(
+            title="Error",
+            message="Debe ingresar la cédula del paciente antes de guardar."
+        )
+            return
+
+        with open("historial.csv", "a", newline="", encoding="utf-8") as csvfile:
+            w = csv.writer(csvfile, delimiter="-")
+            w.writerow([
+            cedula,
+            self.label,
+            f"{self.proba * 100.0:.2f}%"
+        ])
+
+        messagebox.showinfo(
+        title="Guardar",
+        message="Los datos se guardaron con éxito."
+    )
 
     def delete(self):
-        """Pide confirmación y borra datos e imágenes mostradas."""
         answer = messagebox.askokcancel(
             title="Confirmación",
             message="Se borrarán todos los datos.",
             icon=messagebox.WARNING,
         )
+
         if answer:
             self.text1.delete(0, "end")
             self.text2.delete("1.0", "end")
             self.text3.delete("1.0", "end")
             self.text_img1.delete("1.0", "end")
             self.text_img2.delete("1.0", "end")
+
             messagebox.showinfo(
                 title="Borrar",
-                message="Los datos se borraron con éxito"
+                message="Los datos se borraron con éxito."
             )
 
 
 def main():
-    """Punto de entrada: crea y ejecuta la aplicación."""
     app = App()
     return 0
 
