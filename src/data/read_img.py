@@ -44,18 +44,17 @@ def read_dicom_file(path):
 
 def read_jpg_file(path):
     """
-    Lee un archivo de imagen JPG/PNG y retorna el array y la imagen.
+    Lee una imagen JPEG/PNG y devuelve array y imagen PIL para visualización.
 
     Args:
-        path (str): Ruta al archivo de imagen JPG/PNG 
-
-    Raises:
-        FileNotFoundError: Si el archivo no existe
-        ValueError: Si el archivo no se pudo leer como imagen
+        path: Ruta al archivo .jpg, .jpeg o .png.
 
     Returns:
-        tuple: (img2, img2show) donde img2 es un numpy array
-        e img2show es una imagen PIL para visualización.
+        Tupla (img_array, img2show) con array numpy y PIL Image.
+
+    Raises:
+        FileNotFoundError: Si el archivo no existe.
+        ValueError: Si la imagen no pudo leerse.
     """
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No se encontró el archivo: {path}")
@@ -72,16 +71,17 @@ def read_jpg_file(path):
 
 def read_image(path):
     """
-    Lee una imagen desde archivo, detectando automáticamente el formato.
-    
-    Soporta archivos DICOM (.dcm) y formate raster (.jpg, .jpeg, .png).
+    Lee una imagen desde ruta; soporta DICOM (.dcm) y raster (.jpg, .png).
 
     Args:
-        path (str): Ruta al archivo de imagen (DICOM o JPG/PNG)
+        path: Ruta al archivo de imagen.
 
     Returns:
-        tuple: (array, img2show) donde array es un numpy array
-        e img2show es una imagen PIL para visualización.
+        Tupla (array, img2show): array para el pipeline, PIL Image para UI.
+
+    Raises:
+        FileNotFoundError: Si el archivo no existe.
+        ValueError: Si la imagen no pudo leerse (solo raster).
     """
     path_lower = path.lower()
     if path_lower.endswith(".dcm"):

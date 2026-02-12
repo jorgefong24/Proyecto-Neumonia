@@ -11,7 +11,6 @@ y heatmap para la UI.
 from src.models.load_model import load_model as load_cnn_model
 from src.visualizations.grad_cam import grad_cam as compute_grad_cam
 
-
 def run_pipeline(array, model_path=None):
     """
     Ejecuta el pipeline: carga el modelo, predice y genera heatmap Grad-CAM.

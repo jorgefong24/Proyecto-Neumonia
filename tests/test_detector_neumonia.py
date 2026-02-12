@@ -13,6 +13,9 @@ import sys
 import pytest
 from PIL import Image
 
+pytest.importorskip("PySide6")
+
+# Asegurar que el paquete del proyecto sea importable.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.models.display_labels import get_display_label
@@ -40,18 +43,20 @@ def test_get_display_label_unknown_returns_str():
 def test_pil_to_qpixmap_returns_valid_pixmap():
     """
     Verifica que pil_to_qpixmap convierte una imagen PIL a QPixmap
-    con las dimensiones esperadas. Requiere PySide6.
+    con las dimensiones esperadas (escalado al tamaño solicitado).
     """
     pytest.importorskip("PySide6")
     from PySide6.QtGui import QPixmap
 
-    from src.models.detector_neumonia import pil_to_qpixmap
+    # Imagen pequeña 10x10 RGB.
 
+    from src.models.detector_neumonia import pil_to_qpixmap
     pil_img = Image.new("RGB", (10, 10), color=(128, 128, 128))
     size = 40
     pix = pil_to_qpixmap(pil_img, size=size)
 
     assert isinstance(pix, QPixmap)
     assert not pix.isNull()
+    # Escalado mantiene aspecto; para 10x10 queda size x size.
     assert pix.width() == size
     assert pix.height() == size

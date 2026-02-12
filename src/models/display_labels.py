@@ -6,12 +6,12 @@ Mapeo de etiquetas del modelo de neumonía a texto para la interfaz.
 Módulo sin dependencias de Qt para poder probarlo de forma aislada.
 """
 
+# Etiquetas del modelo -> texto visible en la UI.
 LABEL_DISPLAY_MAP = {
     "normal": "Sin neumonía",
     "viral": "Neumonía viral",
     "bacteriana": "Neumonía bacteriana",
 }
-
 
 def get_display_label(label: str) -> str:
     """
