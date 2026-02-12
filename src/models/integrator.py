@@ -12,7 +12,6 @@ from src.models.load_model import load_model as load_cnn_model
 from src.visualizations.grad_cam import grad_cam as compute_grad_cam
 
 
-
 def run_pipeline(array, model_path=None):
     """
     Ejecuta el pipeline completo de predicción y visualización.
@@ -26,7 +25,6 @@ def run_pipeline(array, model_path=None):
         proba es la probabilidad de neumonía (float) y heatmap es un array RGB
         para visualización.
     """
-
     model = load_cnn_model(path=model_path)
     label, proba, heatmap = compute_grad_cam(model, array)
     return label, proba, heatmap

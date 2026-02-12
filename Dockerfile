@@ -1,9 +1,11 @@
 FROM python:3.10-slim
 
+# Evita prompts interactivos al instalar paquetes
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# Dependencias del sistema (Tkinter, OpenCV y X11 para GUI)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-tk \
     tk \
@@ -12,7 +14,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsm6 \
     libxext6 \
     libxrender1 \
-    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -20,12 +21,8 @@ WORKDIR /app
 COPY . /app
 
 RUN pip install --no-cache-dir -U pip && \
-    if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && \
-    if [ -f pyproject.toml ] || [ -f setup.py ]; then pip install --no-cache-dir .; fi
+    pip install --no-cache-dir .
 
-CMD ["sh", "-c", "\
-if [ \"$RUN_GUI\" = \"1\" ]; then \
-    python detector_neumonia.py; \
-else \
-    python cli.py --help; \
-fi"]
+# Por defecto corre en modo CLI (útil en contenedor).
+# Para la GUI (Tkinter) en contenedor se requiere servidor X/WSLg.
+CMD ["python", "cli.py", "--help"]

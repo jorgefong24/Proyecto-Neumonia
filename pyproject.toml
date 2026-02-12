@@ -16,6 +16,7 @@ dependencies = [
     "tkcap>=0.0.4",
     "img2pdf>=0.4.0",
     "pytest>=7.0.0",
+    "PySide6>=6.6.0",
 ]
 
 [build-system]

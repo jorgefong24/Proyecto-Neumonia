@@ -4,7 +4,7 @@ cd /d "%~dp0"
 
 if exist ".venv\Scripts\python.exe" (
     echo Iniciando con .venv...
-    .venv\Scripts\python.exe detector_neumonia.py
+    .venv\Scripts\python.exe -m src.models.detector_neumonia
     goto :eof
 )
 
