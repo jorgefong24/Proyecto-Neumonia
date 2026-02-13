@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bookworm
 
 # Evita prompts interactivos al instalar paquetes
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -10,10 +10,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-tk \
     tk \
     libgl1 \
+    libegl-mesa0 \
+    libgl1-mesa-dri \
+    libgles2 \
+    mesa-utils \
     libglib2.0-0 \
+    libxkbcommon0 \
     libsm6 \
     libxext6 \
     libxrender1 \
+    libxrandr2 \
+    libxinerama1 \
+    libxcursor1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  cli:
+    build: .
+    image: proyecto-neumonia:latest
+    container_name: proyecto_neumonia_cli
+    volumes:
+      - ./:/data
+    working_dir: /data
+    command: python /app/cli.py --image /data/normal.dcm --model /data/conv_MLP_84.h5 --out /data/out
+
+  gui:
+    build: .
+    image: proyecto-neumonia:gui
+    container_name: proyecto_neumonia_gui
+    environment:
+      - RUN_GUI=1
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - ./:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    working_dir: /app
+    # Use host networking on Linux if needed to access X11; Windows will use
+    # host.docker.internal display or VcXsrv.
+    command: sh -c "python detector_neumonia.py"
