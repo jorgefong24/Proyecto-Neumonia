@@ -20,6 +20,7 @@ from tkinter import (
 import img2pdf
 import tkcap
 from PIL import Image, ImageTk
+import os
 
 from src.data.read_img import read_image
 from src.models.integrator import run_pipeline
@@ -208,15 +209,26 @@ class App:
         self.text3.insert(END, f"{self.proba * 100:.2f}%")
 
     def save_results_csv(self):
-        """
-        Guarda Cédula, resultado y probabilidad en historial.csv
-        """
-        with open("historial.csv", "a", newline="", encoding="utf-8") as csvfile:
+        """Guarda cédula, resultado y probabilidad en historial.csv."""
+
+        cedula = self.text1.get().strip()
+
+        if not cedula:
+            messagebox.showerror(
+                title="Error",
+                message="Debe ingresar la cédula del paciente antes de guardar."
+            )
+            return
+
+        history_path = os.path.join("reports", "history")
+        os.makedirs(history_path, exist_ok=True)
+
+        csv_path = os.path.join(history_path, "historial.csv")
+
+        with open(csv_path, "a", newline="", encoding="utf-8") as csvfile:
             w = csv.writer(csvfile, delimiter="-")
-            w.writerow([
-                self.text1.get(),
-                self.label,
-                f"{self.proba * 100:.2f}%"
+            w.writerow(["Paciente:CC." + cedula + " ", " Resultado: " + self.label + " ",
+                f" {self.proba * 100:.2f}%"
             ])
 
         messagebox.showinfo(
@@ -231,7 +243,7 @@ class App:
         from datetime import datetime
 
         cedula = self.text1.get().strip()
-
+        # Se hace condicional de comprobación de entrada de cédula
         if not cedula:
             messagebox.showerror(
                 title="Error",
@@ -242,6 +254,7 @@ class App:
         # Crear carpetas si no existen
         os.makedirs("reports/jpg", exist_ok=True)
         os.makedirs("reports/PDF", exist_ok=True)
+        os.makedirs("reports/history", exist_ok=True)
 
         # Timestamp para evitar archivos repetidos
         timestamp = datetime.now().strftime("D_%Y-%m-%d_T_%H-%M-%S")
@@ -250,7 +263,7 @@ class App:
 
         jpg_path = os.path.join("reports/jpg", f"{nombre_base}.jpg")
         pdf_path = os.path.join("reports/PDF", f"{nombre_base}.pdf")
-
+        history_path = os.path.join("reports/history")
         # Captura imagen
         cap = tkcap.CAP(self.root)
         cap.capture(jpg_path)
@@ -264,31 +277,6 @@ class App:
             title="PDF",
             message=f"El PDF fue generado con éxito:\n{pdf_path}"
         )
-        
-        def save_results_csv(self):
-         """Guarda cédula, resultado y probabilidad en historial.csv."""
-
-        cedula = self.text1.get().strip()
-
-        if not cedula:
-            messagebox.showerror(
-            title="Error",
-            message="Debe ingresar la cédula del paciente antes de guardar."
-        )
-            return
-
-        with open("historial.csv", "a", newline="", encoding="utf-8") as csvfile:
-            w = csv.writer(csvfile, delimiter="-")
-            w.writerow([
-            cedula,
-            self.label,
-            f"{self.proba * 100.0:.2f}%"
-        ])
-
-        messagebox.showinfo(
-        title="Guardar",
-        message="Los datos se guardaron con éxito."
-    )
 
     def delete(self):
         answer = messagebox.askokcancel(
