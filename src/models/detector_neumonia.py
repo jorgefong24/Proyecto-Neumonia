@@ -6,6 +6,18 @@ from src.data.read_img import read_image
 from src.models.display_labels import get_display_label
 from src.models.integrator import run_pipeline
 from PIL import Image, ImageDraw, ImageFont
+
+# OpenCV puede inyectar rutas de plugins Qt incompatibles con PySide6.
+# Se limpian para forzar el uso de plugins Qt propios de PySide6.
+os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH", None)
+os.environ.pop("QT_PLUGIN_PATH", None)
+os.environ.setdefault("QT_XCB_NO_XI2", "1")
+os.environ.setdefault("QT_X11_NO_MITSHM", "1")
+os.environ.setdefault("QT_OPENGL", "software")
+os.environ.setdefault("LIBGL_ALWAYS_SOFTWARE", "1")
+os.environ.setdefault("LIBGL_ALWAYS_INDIRECT", "1")
+os.environ.setdefault("NO_AT_BRIDGE", "1")
+
 from PySide6.QtCore import Qt, QRegularExpression, QThread, Signal
 from PySide6.QtGui import QImage, QPixmap, QRegularExpressionValidator
 from PySide6.QtWidgets import (

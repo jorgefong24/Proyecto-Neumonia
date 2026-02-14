@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgles2 \
     mesa-utils \
     libglib2.0-0 \
+    libdbus-1-3 \
     libxkbcommon0 \
     libsm6 \
     libxext6 \
@@ -22,6 +23,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrandr2 \
     libxinerama1 \
     libxcursor1 \
+    libxcb1 \
+    libxcb-cursor0 \
+    libxcb-render0 \
+    libxcb-shm0 \
+    libxcb-xfixes0 \
+    libxcb-shape0 \
+    libxcb-randr0 \
+    libxcb-image0 \
+    libxcb-keysyms1 \
+    libxcb-icccm4 \
+    libx11-xcb1 \
+    libxkbcommon-x11-0 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

@@ -7,6 +7,7 @@ Responsabilidad: cargar el archivo .h5 y validar integridad básica.
 """
 
 import os
+from typing import Iterable
 
 from tensorflow import keras
 
@@ -14,6 +15,36 @@ MODEL_FILENAME = "conv_MLP_84.h5"
 # También buscar alternativa entregada en el enunciado del curso
 ALTERNATIVE_MODEL_FILENAMES = ("WilhemNet86.h5", "conv_MLP_84.h5")
 _MODEL_CACHE = None
+
+
+def _candidate_variants(candidate: str) -> Iterable[str]:
+    """
+    Devuelve variantes razonables para buscar el modelo.
+
+    Si llega una ruta absoluta que no existe (por ejemplo /data/modelo.h5),
+    también intenta con su nombre base para permitir buscar en otros montajes.
+    """
+    yield candidate
+    basename = os.path.basename(candidate)
+    if basename and basename != candidate:
+        yield basename
+
+
+def _search_dirs() -> list[str]:
+    """
+    Construye directorios de búsqueda en orden de prioridad.
+    """
+    module_dir = os.path.dirname(__file__)
+    app_root = os.path.normpath(os.path.join(module_dir, "..", ".."))
+    return [
+        os.getcwd(),
+        module_dir,
+        os.path.normpath(os.path.join(module_dir, "..")),
+        app_root,
+        "/project",
+        "/data",
+        "/app",
+    ]
 
 
 def load_model(path=None):
@@ -39,32 +70,44 @@ def load_model(path=None):
         # Priorizar el nombre por defecto y luego alternativas
         candidates.extend(ALTERNATIVE_MODEL_FILENAMES)
 
-    # Buscar en la ruta proporcionada, luego en carpeta del módulo, luego
-    # en el directorio padre del proyecto.
+    # Buscar en la ruta proporcionada y luego en rutas de respaldo.
     found_path = None
+    inspected_paths = []
+    search_dirs = _search_dirs()
     for candidate in candidates:
-        if os.path.isabs(candidate) and os.path.isfile(candidate):
-            found_path = candidate
-            break
-        # buscar relativo al cwd
-        if os.path.isfile(candidate):
-            found_path = os.path.abspath(candidate)
-            break
-        # buscar en la carpeta del módulo
-        module_path = os.path.join(os.path.dirname(__file__), candidate)
-        if os.path.isfile(module_path):
-            found_path = os.path.normpath(module_path)
-            break
-        # buscar en la carpeta padre del repo
-        parent_path = os.path.join(os.path.dirname(__file__), "..", candidate)
-        parent_path = os.path.normpath(parent_path)
-        if os.path.isfile(parent_path):
-            found_path = parent_path
+        seen = set()
+        for variant in _candidate_variants(candidate):
+            # 1) intentar directo (absoluto o relativo al cwd)
+            direct_path = os.path.abspath(variant)
+            if direct_path not in seen:
+                seen.add(direct_path)
+                inspected_paths.append(direct_path)
+                if os.path.isfile(direct_path):
+                    found_path = direct_path
+                    break
+
+            # 2) intentar combinando con directorios de búsqueda
+            for base_dir in search_dirs:
+                combined = os.path.abspath(os.path.join(base_dir, variant))
+                if combined in seen:
+                    continue
+                seen.add(combined)
+                inspected_paths.append(combined)
+                if os.path.isfile(combined):
+                    found_path = combined
+                    break
+            if found_path is not None:
+                break
+        if found_path is not None:
             break
 
     if found_path is None:
-        raise FileNotFoundError(f"No se encontró ningún modelo entre: {candidates}"
-                                )
+        unique_paths = list(dict.fromkeys(inspected_paths))
+        raise FileNotFoundError(
+            "No se encontró ningún modelo. "
+            f"Candidatos de entrada: {candidates}. "
+            f"Rutas inspeccionadas: {unique_paths}"
+        )
 
     if _MODEL_CACHE is not None:
         return _MODEL_CACHE
