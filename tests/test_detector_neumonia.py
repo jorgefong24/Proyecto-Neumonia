@@ -51,6 +51,7 @@ def test_pil_to_qpixmap_returns_valid_pixmap():
     # Imagen pequeña 10x10 RGB.
 
     from src.models.detector_neumonia import pil_to_qpixmap
+
     pil_img = Image.new("RGB", (10, 10), color=(128, 128, 128))
     size = 40
     pix = pil_to_qpixmap(pil_img, size=size)

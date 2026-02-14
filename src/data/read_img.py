@@ -20,15 +20,14 @@ def read_dicom_file(path):
     Lee un archivo DICOM y retorna el array y la imagen para mostrar.
 
     Args:
-        path (str): Ruta al archivo DICOM 
+        path (str): Ruta al archivo DICOM
 
     Raises:
         FileNotFoundError: Si el archivo no existe
-        
 
     Returns:
-        tuple: (img_rgb, img2show) donde img_rgb es un array RGB 
-        para el modelo y img2show es una imagen PIL para
+        tuple: (img_rgb, img2show) donde img_rgb es un array RGB
+            para el modelo y img2show es una imagen PIL para
         visualización.
     """
     if not os.path.isfile(path):

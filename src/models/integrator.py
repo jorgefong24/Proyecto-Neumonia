@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Módulo integrador (Facade): coordina read_img, preprocess, load_model y
 grad_cam para exponer una única salida hacia la interfaz gráfica.
@@ -11,6 +12,7 @@ y heatmap para la UI.
 from src.models.load_model import load_model as load_cnn_model
 from src.visualizations.grad_cam import grad_cam as compute_grad_cam
 
+
 def run_pipeline(array, model_path=None):
     """
     Ejecuta el pipeline completo de predicción y visualización.
@@ -21,7 +23,7 @@ def run_pipeline(array, model_path=None):
 
     Returns:
         tuple: (label, proba, heatmap) donde label es la clase predicha (str),
-        proba es la probabilidad de neumonía (float) y heatmap 
+        proba es la probabilidad de neumonía (float) y heatmap
         es un array RGB para visualización.
     """
     model = load_cnn_model(path=model_path)
