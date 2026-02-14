@@ -450,9 +450,12 @@ class DetectorWindow(QMainWindow):
                 "Debe ingresar la cédula del paciente antes de guardar.",
             )
             return
-        with open("historial.csv", "a", newline="", encoding="utf-8") as f:
+        history_dir = os.path.join("reports", "history")
+        os.makedirs(history_dir, exist_ok=True)
+        csv_path = os.path.join(history_dir, "historial.csv")
+        with open(csv_path, "a", newline="", encoding="utf-8") as f:
             w = csv.writer(f, delimiter="-")
-            w.writerow([cedula, self.label, f"{self.proba * 100:.2f}%"])
+            w.writerow(["Paciente:CC."+cedula + " "," Diagnostíco: "+ self.label+" ", f" {self.proba  * 100:.2f}%"])
         QMessageBox.information(self, "Guardar", "Los datos se guardaron con éxito.")
 
     def export_pdf(self):
@@ -508,7 +511,15 @@ class DetectorWindow(QMainWindow):
         """Genera un PDF con imagen original, heatmap y datos (sin captura de pantalla)."""
 
         base_name = f"Resultado paciente CC. {cedula}"
-        pdf_path = f"{base_name}.pdf"
+
+        # Crear directorios para JPG y PDF
+        jpg_dir = os.path.join("reports", "jpg")
+        pdf_dir = os.path.join("reports", "pdf")
+        os.makedirs(jpg_dir, exist_ok=True)
+        os.makedirs(pdf_dir, exist_ok=True)
+
+        jpg_path = os.path.join(jpg_dir, f"{base_name}.jpg")
+        pdf_path = os.path.join(pdf_dir, f"{base_name}.pdf")
 
         # Imagen original desde self.array (para DICOM es RGB; para JPG puede ser BGR)
         if self.array is not None:
@@ -550,12 +561,9 @@ class DetectorWindow(QMainWindow):
         report.paste(orig_pil, (gap, header_h + gap))
         report.paste(heat_pil, (w + gap * 2, header_h + gap))
 
-        tmp_jpg = f"{base_name}.jpg"
-        report.save(tmp_jpg, "JPEG", quality=92)
+        report.save(jpg_path, "JPEG", quality=92)
         with open(pdf_path, "wb") as f:
-            f.write(img2pdf.convert(tmp_jpg))
-        if os.path.isfile(tmp_jpg):
-            os.remove(tmp_jpg)
+            f.write(img2pdf.convert(jpg_path))
         return pdf_path
 
 
