@@ -13,6 +13,7 @@ LABEL_DISPLAY_MAP = {
     "bacteriana": "Neumonía bacteriana",
 }
 
+
 def get_display_label(label: str) -> str:
     """
     Devuelve el texto a mostrar para la etiqueta predicha por el modelo.

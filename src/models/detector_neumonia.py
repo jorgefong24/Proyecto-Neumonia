@@ -1,8 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Interfaz gráfica para detección de neumonía en radiografías de tórax.
+
+Este módulo implementa la ventana principal de la aplicación usando PySide6,
+permitiendo cargar imágenes DICOM/JPG/PNG, ejecutar predicciones con el modelo
+y mostrar resultados junto con heatmaps de Grad-CAM. También permite guardar
+resultados en CSV y exportar reportes en PDF.
+
+"""
 import csv
 import os
 import img2pdf
 import cv2
-from src.data.read_img import read_image        
+from src.data.read_img import read_image
 from src.models.display_labels import get_display_label
 from src.models.integrator import run_pipeline
 from PIL import Image, ImageDraw, ImageFont
@@ -42,6 +53,7 @@ IMAGE_DISPLAY_SIZE = 480
 
 # Tamaño mínimo del recuadro cuando no hay imagen (placeholder).
 IMAGE_PLACEHOLDER_MIN_SIZE = 200
+
 
 def pil_to_qpixmap(
     pil_image: Image.Image,
@@ -84,6 +96,7 @@ def numpy_rgb_to_qpixmap(arr, size: int = IMAGE_DISPLAY_SIZE) -> QPixmap:
     pix = QPixmap.fromImage(qimg)
     return pix.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
+
 def _apply_pixmap_to_label(label_widget: QLabel, pix: QPixmap) -> None:
     """
     Muestra un QPixmap en un QLabel y ajusta el tamaño mínimo al de la imagen.
@@ -111,6 +124,7 @@ def _clear_image_label(
     label_widget.setPixmap(QPixmap())
     label_widget.setText(placeholder_text)
     label_widget.setMinimumSize(IMAGE_PLACEHOLDER_MIN_SIZE, IMAGE_PLACEHOLDER_MIN_SIZE)
+
 
 # Estilo moderno y limpio (tema claro profesional)
 STYLESHEET = """
@@ -228,6 +242,7 @@ QProgressBar::chunk {
 }
 """
 
+
 class PredictionWorker(QThread):
     """
     Worker en segundo plano para ejecutar el pipeline de predicción.
@@ -256,13 +271,15 @@ class PredictionWorker(QThread):
         except Exception as e:
             self.error.emit(str(e))
 
+
 class DetectorWindow(QMainWindow):
     """Ventana principal de la aplicación de detección de neumonía."""
 
-    PLACEHOLDER_ORIGINAL = "Clic en \"Cargar radiografía\" para iniciar"
+    PLACEHOLDER_ORIGINAL = 'Clic en "Cargar radiografía" para iniciar'
     PLACEHOLDER_HEATMAP = "Aquí verás el heatmap después de predecir"
 
     def __init__(self):
+        """Inicializa la ventana, componentes y estado inicial."""
         super().__init__()
         self.array = None
         self.label = ""
@@ -299,14 +316,19 @@ class DetectorWindow(QMainWindow):
         self.img_original = QLabel()
         self.img_original.setObjectName("imagePlaceholder")
         self.img_original.setAlignment(Qt.AlignCenter)
-        self.img_original.setMinimumSize(IMAGE_PLACEHOLDER_MIN_SIZE, IMAGE_PLACEHOLDER_MIN_SIZE)
+        self.img_original.setMinimumSize(
+            IMAGE_PLACEHOLDER_MIN_SIZE, IMAGE_PLACEHOLDER_MIN_SIZE
+        )
         self.img_original.setText(self.PLACEHOLDER_ORIGINAL)
         self.img_original.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        
+
         self.img_heatmap = QLabel()
         self.img_heatmap.setObjectName("imagePlaceholder")
         self.img_heatmap.setAlignment(Qt.AlignCenter)
-        self.img_heatmap.setMinimumSize(IMAGE_PLACEHOLDER_MIN_SIZE, IMAGE_PLACEHOLDER_MIN_SIZE,)
+        self.img_heatmap.setMinimumSize(
+            IMAGE_PLACEHOLDER_MIN_SIZE,
+            IMAGE_PLACEHOLDER_MIN_SIZE,
+        )
         self.img_heatmap.setText(self.PLACEHOLDER_HEATMAP)
         self.img_heatmap.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -335,8 +357,7 @@ class DetectorWindow(QMainWindow):
         self.cedula_edit.setPlaceholderText("Solo números (ej: 12345678)")
         self.cedula_edit.setMaxLength(15)
         only_digits = QRegularExpression(r"^\d{0,15}$")
-        self.cedula_edit.setValidator(
-            QRegularExpressionValidator(only_digits, self))
+        self.cedula_edit.setValidator(QRegularExpressionValidator(only_digits, self))
         result_layout.addWidget(self.cedula_edit)
 
         result_layout.addWidget(QLabel("Resultado:"))
@@ -387,11 +408,13 @@ class DetectorWindow(QMainWindow):
         self.setStyleSheet(STYLESHEET)
 
     def load_image(self):
+        """Abre un diálogo para seleccionar y cargar una imagen de radiografía."""
         path, _ = QFileDialog.getOpenFileName(
             self,
             "Seleccionar imagen",
             "",
-            "Imágenes (*.dcm *.jpg *.jpeg *.png);;DICOM (*.dcm);;JPEG (*.jpg *.jpeg);;PNG (*.png)",
+            "Imágenes (*.dcm *.jpg *.jpeg *.png);;DICOM (*.dcm);;"
+            "JPEG (*.jpg *.jpeg);;PNG (*.png)",
         )
         if not path:
             return
@@ -409,6 +432,7 @@ class DetectorWindow(QMainWindow):
         self.btn_predict.setEnabled(True)
 
     def run_prediction(self):
+        """Ejecuta la predicción en segundo plano usando PredictionWorker."""
         if self.array is None:
             return
         self.btn_predict.setEnabled(False)
@@ -424,16 +448,10 @@ class DetectorWindow(QMainWindow):
         self.label = label
         self.proba = proba
         self.heatmap_array = heatmap
-        label_map = {
-            "normal": "Sin neumonía",
-            "viral": "Neumonía viral",
-            "bacteriana": "Neumonía bacteriana",
-        }
         self.result_label.setText(get_display_label(label))
         self.prob_label.setText(f"{proba * 100:.2f}%")
         pix = numpy_rgb_to_qpixmap(heatmap)
         _apply_pixmap_to_label(self.img_heatmap, pix)
-
 
     def _on_prediction_error(self, msg: str):
         self.progress.setVisible(False)
@@ -441,7 +459,7 @@ class DetectorWindow(QMainWindow):
         QMessageBox.critical(self, "Error en la predicción", msg)
 
     def save_results_csv(self):
-
+        """Guarda los resultados en CSV."""
         cedula = self.cedula_edit.text().strip()
         if not cedula:
             QMessageBox.warning(
@@ -455,10 +473,21 @@ class DetectorWindow(QMainWindow):
         csv_path = os.path.join(history_dir, "historial.csv")
         with open(csv_path, "a", newline="", encoding="utf-8") as f:
             w = csv.writer(f, delimiter="-")
-            w.writerow(["Paciente:CC."+cedula + " "," Diagnostíco: "+ self.label+" ", f" {self.proba  * 100:.2f}%"])
+            w.writerow(
+                [
+                    "Paciente:CC." + cedula + " ",
+                    " Diagnostíco: " + self.label + " ",
+                    f" {self.proba  * 100:.2f}%",
+                ]
+            )
         QMessageBox.information(self, "Guardar", "Los datos se guardaron con éxito.")
 
     def export_pdf(self):
+        """
+        Exporta un reporte en PDF con la imagen original, heatmap y resultados.
+
+        Requiere que se haya ingresado la cédula y que se haya ejecutado una predicción.
+        """
         cedula = self.cedula_edit.text().strip()
         if not cedula:
             QMessageBox.warning(
@@ -485,6 +514,11 @@ class DetectorWindow(QMainWindow):
             QMessageBox.critical(self, "Error al generar PDF", str(e))
 
     def clear_all(self):
+        """
+        Limpia toda la información y restablece el estado inicial de la interfaz.
+
+        Pide confirmación antes de borrar los datos.
+        """
         ok = QMessageBox.question(
             self,
             "Confirmar",
@@ -506,10 +540,8 @@ class DetectorWindow(QMainWindow):
         self.btn_predict.setEnabled(False)
         QMessageBox.information(self, "Listo", "Se limpió la pantalla correctamente.")
 
-
     def _build_pdf(self, cedula: str) -> str:
         """Genera un PDF con imagen original, heatmap y datos (sin captura de pantalla)."""
-
         base_name = f"Resultado paciente CC. {cedula}"
 
         # Crear directorios para JPG y PDF
@@ -556,7 +588,12 @@ class DetectorWindow(QMainWindow):
             font_large = ImageFont.load_default()
             font_small = ImageFont.load_default()
         draw.text((gap, 20), f"Reporte - CC. {cedula}", fill=(0, 0, 0), font=font_large)
-        draw.text((gap, 50), f"Resultado: {self.label}  |  Probabilidad: {self.proba * 100:.2f}%", fill=(60, 60, 60), font=font_small)
+        draw.text(
+            (gap, 50),
+            f"Resultado: {self.label}  |  Probabilidad: {self.proba * 100:.2f}%",
+            fill=(60, 60, 60),
+            font=font_small,
+        )
 
         report.paste(orig_pil, (gap, header_h + gap))
         report.paste(heat_pil, (w + gap * 2, header_h + gap))
@@ -568,11 +605,13 @@ class DetectorWindow(QMainWindow):
 
 
 def main():
+    """Punto de partida para el inicio de la GUI."""
     app = QApplication([])
     app.setApplicationName("Apoyo al diagnóstico médico de neumonía")
     win = DetectorWindow()
     win.show()
     return app.exec()
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

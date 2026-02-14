@@ -31,9 +31,7 @@ def _candidate_variants(candidate: str) -> Iterable[str]:
 
 
 def _search_dirs() -> list[str]:
-    """
-    Construye directorios de búsqueda en orden de prioridad.
-    """
+    """Construye directorios de búsqueda en orden de prioridad."""
     module_dir = os.path.dirname(__file__)
     app_root = os.path.normpath(os.path.join(module_dir, "..", ".."))
     return [
@@ -118,8 +116,6 @@ def load_model(path=None):
 
 
 def clear_model_cache():
-    """
-    Limpia la caché del modelo cargado (útil para tests o recarga).
-    """
+    """Limpia la caché del modelo cargado (útil para tests o recarga)."""
     global _MODEL_CACHE
     _MODEL_CACHE = None
